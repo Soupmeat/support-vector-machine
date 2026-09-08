@@ -2,6 +2,7 @@
 #include <vector>
 #include <iostream> 
 #include <omp.h>
+
 SVM::SVM(std::vector<std::vector<double>> training_inputt, std::vector<int> labelss, double CC):
             training_input(std::move(training_inputt)),
             labels(std::move(labelss)), 
@@ -12,6 +13,7 @@ SVM::SVM(std::vector<std::vector<double>> training_inputt, std::vector<int> labe
             bias(0)
             {
             }
+
 void SVM::compute_weights() {
     for (size_t train_inst = 0; train_inst < training_input.size(); train_inst++){
         for (size_t dim = 0; dim < weights.size(); dim ++){
@@ -27,13 +29,4 @@ int SVM::predict(std::vector<double> input) {
     if (output > 0) 
         return 1;
     return -1;
-}
-
-
-std::vector<std::vector<double>> training_data = {{0,1,2},{91,2,3}};
-std::vector<int> labels = {0,1};
-double l1_regularization = 2.0;
-
-int main() {
-    SVM Estimator = SVM(training_data, labels, l1_regularization);
 }
