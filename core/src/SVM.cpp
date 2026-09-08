@@ -1,4 +1,4 @@
-#include "SVM.h"
+#include <SVM.h>
 #include <vector>
 #include <iostream> 
 #include <omp.h>
@@ -8,7 +8,8 @@ SVM::SVM(std::vector<std::vector<double>> training_inputt, std::vector<int> labe
             C(CC),
             objective(std::numeric_limits<double>::min()),
             alpha(labels.size(), 0),
-            weights(training_input[0].size(), 0)
+            weights(training_input[0].size(), 0),
+            bias(0)
             {
             }
 void SVM::compute_weights() {
