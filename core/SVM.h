@@ -8,8 +8,11 @@ class SVM {
         double C;
         double objective;
         std::vector<double> alpha;
-        void step();
+        std::vector<double> weights;
+        double bias = 0;
+        void compute_weights();
     public:
         SVM(std::vector<std::vector<double>> training_inputt, 
             std::vector<int> labelss, double CC);
+        int predict(std::vector<double> input);
 };
