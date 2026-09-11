@@ -1,32 +1,49 @@
 #include <SVM.h>
 #include <vector>
-#include <iostream> 
-#include <omp.h>
 
-SVM::SVM(std::vector<std::vector<double>> training_inputt, std::vector<int> labelss, double CC):
-            training_input(std::move(training_inputt)),
-            labels(std::move(labelss)), 
-            C(CC),
-            objective(std::numeric_limits<double>::min()),
-            alpha(labels.size(), 0),
-            weights(training_input[0].size(), 0),
+SVM::SVM(Problem prob, Kernel k):
+            kernel(k),
+            problem(prob),
+            alpha(prob.size, 0),
+            weights(prob.no_dim, 0),
             bias(0)
             {
             }
 
-void SVM::compute_weights() {
-    for (size_t train_inst = 0; train_inst < training_input.size(); train_inst++){
+void SVM::update_weights_if_linear(double a1_new, size_t i1, double a2_new, size_t i2) {
         for (size_t dim = 0; dim < weights.size(); dim ++){
-            weights[dim] += alpha[train_inst] * labels[train_inst] * training_input[train_inst][dim];
+            weights[dim] += problem.labels[i1] * (a1_new - alpha[i1]) * problem.training_input[i1][dim] +
+                            problem.labels[i2] * (a2_new - alpha[i2]) * problem.training_input[i2][dim];
         }
     }
+
+void SVM::update_biases(double a1_new, size_t i1, double a2_new, size_t i2){
+    double xi1_dot_xi1 = kernel(problem.training_input[i1], problem.training_input[i1]);
+    double xi1_dot_xi2 = kernel(problem.training_input[i1], problem.training_input[i2]);
+    double xi2_dot_xi2 = kernel(problem.training_input[i2], problem.training_input[i2]);
+    double b1 = error[i1] + problem.labels[i1] * (a1_new - alpha[i1]) * xi1_dot_xi1 +
+                problem.labels[i2] * (a2_new - alpha[i2]) * xi1_dot_xi2 + bias;
+    double b2 = error[i2] + problem.labels[i1] * (a1_new - alpha[i1]) * xi1_dot_xi2 +
+                problem.labels[i2] * (a2_new - alpha[i2]) * xi2_dot_xi2 + bias;
+    bias = (b1 + b2) / 2;
 }
-int SVM::predict(std::vector<double> input) {
+
+int SVM::take_step(size_t i1, size_t i2){
+    double a1 = alpha[i1];
+    double a2 = alpha[i2];
+
+    
+}
+
+void SVM::SMO() {
+    for (size_t idx_alpha = 0; idx_alpha < alpha.size(); idx_alpha++){
+        
+    }
+}
+double SVM::predict(const std::vector<double>& input) {
     double output = -bias;
     for (size_t i = 0; i < input.size(); i++){
         output += weights[i] * input[i];
     }
-    if (output > 0) 
-        return 1;
-    return -1;
+    return output;
 }
