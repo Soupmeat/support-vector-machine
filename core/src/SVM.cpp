@@ -1,6 +1,14 @@
 #include <SVM.h>
 #include <vector>
 
+double dot(std::vector<double> vector1, std::vector<double> vector2){
+    size_t size = vector1.size();
+    double answer = 0;
+    for (size_t idx = 0; idx < size; idx++){
+        answer += vector1[idx] * vector2[idx];
+    }
+    return answer;
+}
 SVM::SVM(Problem prob, Kernel k):
             kernel(k),
             problem(prob),
@@ -17,7 +25,7 @@ void SVM::update_weights_if_linear(double a1_new, size_t i1, double a2_new, size
         }
     }
 
-void SVM::update_biases(double a1_new, size_t i1, double a2_new, size_t i2){
+void SVM::update_bias(double a1_new, size_t i1, double a2_new, size_t i2){
     double xi1_dot_xi1 = kernel(problem.training_input[i1], problem.training_input[i1]);
     double xi1_dot_xi2 = kernel(problem.training_input[i1], problem.training_input[i2]);
     double xi2_dot_xi2 = kernel(problem.training_input[i2], problem.training_input[i2]);
@@ -31,13 +39,12 @@ void SVM::update_biases(double a1_new, size_t i1, double a2_new, size_t i2){
 int SVM::take_step(size_t i1, size_t i2){
     double a1 = alpha[i1];
     double a2 = alpha[i2];
-
+    return 1;
     
 }
 
 void SVM::SMO() {
     for (size_t idx_alpha = 0; idx_alpha < alpha.size(); idx_alpha++){
-        
     }
 }
 double SVM::predict(const std::vector<double>& input) {
@@ -46,4 +53,11 @@ double SVM::predict(const std::vector<double>& input) {
         output += weights[i] * input[i];
     }
     return output;
+}
+int SVM::predict_label(const std::vector<double>& input) {
+    double output = -bias;
+    for (size_t i = 0; i < input.size(); i++){
+        output += weights[i] * input[i];
+    }
+    return (output > 0 ? 1: -1);
 }
