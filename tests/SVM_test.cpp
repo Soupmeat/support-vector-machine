@@ -22,7 +22,7 @@ std::vector<std::vector<double>> T = {
 
 std::vector<int> TRUE_RESULT = {-1, 1, 1};
 
-Problem SAMPLE_PROBLEM{X, Y, 0, 0.001, 6, 2};
+Problem SAMPLE_PROBLEM{X, Y, 1, 0.001, 6, 2};
 TEST(SVM_KERNELS, linear){
     std::vector<double> vector1 = {2, 3, 4};
     std::vector<double> vector2 = {2, 3, 4};
