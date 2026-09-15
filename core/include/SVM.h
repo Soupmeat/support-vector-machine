@@ -3,10 +3,24 @@
 #include <functional>
 #include <random>
 
-typedef std::function<double(std::vector<double>, std::vector<double>)> Kernel;
+typedef std::function<double(std::vector<double>, std::vector<double>)> function;
+enum class KernelType {
+    Linear,
+    RBF,
+    Polynomial
+};
 
 double dot(std::vector<double> vector1, std::vector<double> vector2);
-inline const Kernel linear = dot;
+struct Kernel{
+    const KernelType type;
+    const function kernel_function;
+    Kernel(function k, KernelType t) : kernel_function(k), type(t) {}
+    double operator()(const std::vector<double>& vector1, const std::vector<double>& vector2) const
+    {
+        return kernel_function(vector1, vector2);
+    }
+};
+
 struct Problem{
     const std::vector<std::vector<double>> training_input;
     const std::vector<int> labels;

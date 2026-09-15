@@ -26,11 +26,12 @@ Problem SAMPLE_PROBLEM{X, Y, 1, 0.001, 6, 2};
 TEST(SVM_KERNELS, linear){
     std::vector<double> vector1 = {2, 3, 4};
     std::vector<double> vector2 = {2, 3, 4};
-    double output = linear(vector1, vector2);
+    double output = dot(vector1, vector2);
     ASSERT_DOUBLE_EQ(output, 29);
 }
 TEST(SVM_FUNCTIONS, predict_label) {
-SVM Estimator = SVM(SAMPLE_PROBLEM, linear);
+Kernel linear_kernel = Kernel(dot, KernelType::Linear);
+SVM Estimator = SVM(SAMPLE_PROBLEM, linear_kernel);
 Estimator.SMO();
 for (size_t idx = 0; idx < T.size(); idx ++){
     ASSERT_EQ(Estimator.predict_label(T[idx]), TRUE_RESULT[idx]);
