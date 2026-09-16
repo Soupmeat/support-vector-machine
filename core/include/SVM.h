@@ -28,6 +28,7 @@ struct Problem{
     const double tolerance;
     const size_t size;
     const size_t no_dim;
+    const double eps;
 };
 
 class SVM{
@@ -52,5 +53,5 @@ private:
     int examineExample(size_t i2);
     void update_errors(double diff_a1, double diff_a2, double diff_b, size_t i1, size_t i2);
     size_t select_optimal_i1(size_t i2);
-
+    std::pair<double, double> compute_L_H(double a1, double a2, int y1, int y2);
 };

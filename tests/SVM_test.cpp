@@ -2,6 +2,7 @@
 #include <SVM.h>
 #include <vector>
 
+Kernel linear_kernel(dot, KernelType::Linear);
 // toy sample (https://github.com/scikit-learn/scikit-learn/blob/main/sklearn/svm/tests/test_svm.py)
 std::vector<std::vector<double>> X = {
     {-2.0, -1.0}, 
@@ -22,7 +23,7 @@ std::vector<std::vector<double>> T = {
 
 std::vector<int> TRUE_RESULT = {-1, 1, 1};
 
-Problem SAMPLE_PROBLEM{X, Y, 1, 0.001, 6, 2};
+Problem SAMPLE_PROBLEM{X, Y, 1, 0.001, 6, 2,0.00001};
 TEST(SVM_KERNELS, linear){
     std::vector<double> vector1 = {2, 3, 4};
     std::vector<double> vector2 = {2, 3, 4};
@@ -30,10 +31,10 @@ TEST(SVM_KERNELS, linear){
     ASSERT_DOUBLE_EQ(output, 29);
 }
 TEST(SVM_FUNCTIONS, predict_label) {
-Kernel linear_kernel = Kernel(dot, KernelType::Linear);
 SVM Estimator = SVM(SAMPLE_PROBLEM, linear_kernel);
 Estimator.SMO();
+std::cout << Estimator.predict({-1.0,-1.0}) << std::endl;
 for (size_t idx = 0; idx < T.size(); idx ++){
-    ASSERT_EQ(Estimator.predict_label(T[idx]), TRUE_RESULT[idx]);
+    EXPECT_EQ(Estimator.predict_label(T[idx]), TRUE_RESULT[idx]);
     }
 }
