@@ -259,7 +259,7 @@ void SVM::update_errors(double diff_a1, double diff_a2, double diff_b, size_t i1
                           kernel(problem.training_input[idx], problem.training_input[i1]) +
                       problem.labels[i2] *
                           diff_a2 *
-                          kernel(problem.training_input[idx], problem.training_input[i2]) +
+                          kernel(problem.training_input[idx], problem.training_input[i2]) -
                       diff_b;
     }
 }
