@@ -4,15 +4,15 @@
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 
-SVM::SVM(Problem prob, Kernel* k, unsigned int seed) : kernel(k),
-                                                      problem(prob),
-                                                      alpha(prob.size, 0),
-                                                      weights(prob.no_dim, 0),
-                                                      bias(0),
-                                                      isnonbound(prob.size, false),
-                                                      error(prob.size),
-                                                      nonbound(0),
-                                                      rng(seed)
+SVM::SVM(Problem prob, Kernel *k, unsigned int seed) : kernel(k),
+                                                       problem(prob),
+                                                       alpha(prob.size, 0),
+                                                       weights(prob.no_dim, 0),
+                                                       bias(0),
+                                                       isnonbound(prob.size, false),
+                                                       error(prob.size),
+                                                       nonbound(0),
+                                                       rng(seed)
 {
     for (size_t idx = 0; idx < error.size(); idx++)
     {
@@ -223,21 +223,51 @@ size_t SVM::select_optimal_i1(size_t i2)
 
 double SVM::predict(const std::vector<double> &input)
 {
-    double output = -bias;
-    for (size_t i = 0; i < input.size(); i++)
+    if (kernel->type != KernelType::Linear)
     {
-        output += weights[i] * input[i];
+        double output = -bias;
+        for (size_t idx = 0; idx < problem.size; idx++)
+        {
+            if (alpha[idx] > problem.eps)
+            {
+                output += alpha[idx] * problem.labels[idx] * (*kernel)(problem.training_input[idx], input);
+            }
+        }
+        return output;
     }
-    return output;
+    else
+    {
+        double output = -bias;
+        for (size_t i = 0; i < input.size(); i++)
+        {
+            output += weights[i] * input[i];
+        }
+        return output;
+    }
 }
 int SVM::predict_label(const std::vector<double> &input)
 {
-    double output = -bias;
-    for (size_t i = 0; i < input.size(); i++)
+    if (kernel->type != KernelType::Linear)
     {
-        output += weights[i] * input[i];
+        double output = -bias;
+        for (size_t idx = 0; idx < problem.size; idx++)
+        {
+            if (alpha[idx] > problem.eps)
+            {
+                output += alpha[idx] * problem.labels[idx] * (*kernel)(problem.training_input[idx], input);
+            }
+        }
+        return (output > problem.eps ? 1 : -1);
     }
-    return (output > problem.eps ? 1 : -1);
+    else
+    {
+        double output = -bias;
+        for (size_t i = 0; i < input.size(); i++)
+        {
+            output += weights[i] * input[i];
+        }
+        return (output > problem.eps ? 1 : -1);
+    }
 }
 
 void SVM::update_errors(double diff_a1, double diff_a2, double diff_b, size_t i1, size_t i2)

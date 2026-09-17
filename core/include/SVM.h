@@ -23,7 +23,7 @@ public:
     SVM(Problem prob, Kernel* k, unsigned int seed = 42);
 private:
     std::vector<double> alpha;
-    std::vector<double> weights;
+    std::vector<double> weights; // only used for linear kernel
     double bias;
     std::vector<double> error;
     std::vector<bool> isnonbound;
