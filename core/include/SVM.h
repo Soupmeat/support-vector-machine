@@ -1,25 +1,7 @@
 #pragma once
 #include <vector>
-#include <functional>
 #include <random>
-
-typedef std::function<double(std::vector<double>, std::vector<double>)> function;
-enum class KernelType {
-    Linear,
-    RBF,
-    Polynomial
-};
-
-double dot(std::vector<double> vector1, std::vector<double> vector2);
-struct Kernel{
-    const KernelType type;
-    const function kernel_function;
-    Kernel(function k, KernelType t) : kernel_function(k), type(t) {}
-    double operator()(const std::vector<double>& vector1, const std::vector<double>& vector2) const
-    {
-        return kernel_function(vector1, vector2);
-    }
-};
+#include <Kernel.h>
 
 struct Problem{
     const std::vector<std::vector<double>> training_input;
@@ -34,11 +16,11 @@ struct Problem{
 class SVM{
 public:
     const Problem problem;
-    const Kernel kernel;
+    Kernel* const kernel;
     double predict(const std::vector<double>& input);
     int predict_label(const std::vector<double>& input);
     void SMO();
-    SVM(Problem prob, Kernel k, unsigned int seed = 42);
+    SVM(Problem prob, Kernel* k, unsigned int seed = 42);
 private:
     std::vector<double> alpha;
     std::vector<double> weights;

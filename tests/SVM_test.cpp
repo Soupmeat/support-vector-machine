@@ -2,7 +2,7 @@
 #include <SVM.h>
 #include <vector>
 
-Kernel linear_kernel(dot, KernelType::Linear);
+Kernel* linear_kernel = new LinearKernel();
 // toy sample (https://github.com/scikit-learn/scikit-learn/blob/main/sklearn/svm/tests/test_svm.py)
 std::vector<std::vector<double>> X = {
     {-2.0, -1.0}, 
