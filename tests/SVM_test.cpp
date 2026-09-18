@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <SVM.h>
+#include <SVC.h>
 #include <vector>
 
 Kernel* linear_kernel = new LinearKernel();
@@ -36,10 +36,10 @@ TEST(SVM_KERNELS, operator){
     ASSERT_DOUBLE_EQ(rbf_output, 1);
     ASSERT_DOUBLE_EQ(polynomial_output, 900);
 }
-TEST(SVM_FUNCTIONS, predict_label) {
-SVM Linear_Estimator = SVM(SAMPLE_PROBLEM, linear_kernel);
-SVM RBF_Estimator = SVM(SAMPLE_PROBLEM, rbf_kernel);
-SVM Polynomial_Estimator = SVM(SAMPLE_PROBLEM, polynomial_kernel);
+TEST(SVC_FUNCTIONS, predict_label) {
+SVC Linear_Estimator = SVC(SAMPLE_PROBLEM, linear_kernel);
+SVC RBF_Estimator = SVC(SAMPLE_PROBLEM, rbf_kernel);
+SVC Polynomial_Estimator = SVC(SAMPLE_PROBLEM, polynomial_kernel);
 Linear_Estimator.SMO();
 RBF_Estimator.SMO();
 Polynomial_Estimator.SMO();

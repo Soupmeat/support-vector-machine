@@ -13,14 +13,14 @@ struct Problem{
     const double eps;
 };
 
-class SVM{
+class SVC{
 public:
     const Problem problem;
     Kernel* const kernel;
     double predict(const std::vector<double>& input);
     int predict_label(const std::vector<double>& input);
     void SMO();
-    SVM(Problem prob, Kernel* k, unsigned int seed = 42);
+    SVC(Problem prob, Kernel* k, unsigned int seed = 42);
 private:
     std::vector<double> alpha;
     std::vector<double> weights; // only used for linear kernel
