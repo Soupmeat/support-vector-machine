@@ -1,10 +1,10 @@
 #include <SVC.h>
-
+using namespace SVC;
 #define abs(x) (((x) < 0) ? -(x) : (x))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 
-SVC::SVC(Problem prob, Kernel *k, unsigned int seed) : kernel(k),
+SVM::SVM(Problem prob, Kernel *k, unsigned int seed) : kernel(k),
                                                        problem(prob),
                                                        alpha(prob.size, 0),
                                                        weights(prob.no_dim, 0),
@@ -20,7 +20,7 @@ SVC::SVC(Problem prob, Kernel *k, unsigned int seed) : kernel(k),
     }
 }
 
-void SVC::update_weights_if_linear(double a1_new, size_t i1, double a2_new, size_t i2)
+void SVM::update_weights_if_linear(double a1_new, size_t i1, double a2_new, size_t i2)
 {
     for (size_t dim = 0; dim < weights.size(); dim++)
     {
@@ -29,7 +29,7 @@ void SVC::update_weights_if_linear(double a1_new, size_t i1, double a2_new, size
     }
 }
 
-void SVC::update_bias(double a1_new, size_t i1, double a2_new, size_t i2)
+void SVM::update_bias(double a1_new, size_t i1, double a2_new, size_t i2)
 {
     double xi1_dot_xi1 = (*kernel)(problem.training_input[i1], problem.training_input[i1]);
     double xi1_dot_xi2 = (*kernel)(problem.training_input[i1], problem.training_input[i2]);
@@ -47,7 +47,7 @@ void SVC::update_bias(double a1_new, size_t i1, double a2_new, size_t i2)
         bias = (b1 + b2) / 2;
 }
 
-int SVC::take_step(size_t i1, size_t i2)
+int SVM::take_step(size_t i1, size_t i2)
 {
     if (i1 == i2)
         return 0;
@@ -126,7 +126,7 @@ int SVC::take_step(size_t i1, size_t i2)
     return 1;
 }
 
-void SVC::SMO()
+void SVM::SMO()
 {
     int num_changed = 0;
     int examine_all = 1;
@@ -157,7 +157,7 @@ void SVC::SMO()
     }
 }
 
-int SVC::examineExample(size_t i2)
+int SVM::examineExample(size_t i2)
 {
     int y2 = problem.labels[i2];
     double alph2 = alpha[i2];
@@ -201,7 +201,7 @@ int SVC::examineExample(size_t i2)
     return 0;
 }
 
-size_t SVC::select_optimal_i1(size_t i2)
+size_t SVM::select_optimal_i1(size_t i2)
 {
     double max_error = 0;
     size_t optimal_i1 = i2;
@@ -221,7 +221,7 @@ size_t SVC::select_optimal_i1(size_t i2)
     return optimal_i1;
 }
 
-double SVC::predict(const std::vector<double> &input)
+double SVM::predict(const std::vector<double> &input)
 {
     if (kernel->type != KernelType::Linear)
     {
@@ -245,7 +245,7 @@ double SVC::predict(const std::vector<double> &input)
         return output;
     }
 }
-int SVC::predict_label(const std::vector<double> &input)
+int SVM::predict_label(const std::vector<double> &input)
 {
     if (kernel->type != KernelType::Linear)
     {
@@ -270,7 +270,7 @@ int SVC::predict_label(const std::vector<double> &input)
     }
 }
 
-void SVC::update_errors(double diff_a1, double diff_a2, double diff_b, size_t i1, size_t i2)
+void SVM::update_errors(double diff_a1, double diff_a2, double diff_b, size_t i1, size_t i2)
 {
     for (size_t idx = 0; idx < error.size(); idx++)
     {
@@ -284,7 +284,7 @@ void SVC::update_errors(double diff_a1, double diff_a2, double diff_b, size_t i1
     }
 }
 
-std::pair<double, double> SVC::compute_L_H(double a1, double a2, int y1, int y2)
+std::pair<double, double> SVM::compute_L_H(double a1, double a2, int y1, int y2)
 {
     double L = 0;
     double H = 0;

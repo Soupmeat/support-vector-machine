@@ -25,7 +25,7 @@ std::vector<std::vector<double>> T = {
 
 std::vector<int> TRUE_RESULT = {-1, 1, 1};
 
-Problem SAMPLE_PROBLEM{X, Y, 1, 0.001, 6, 2,0.00001};
+SVC::Problem SAMPLE_PROBLEM{X, Y, 1, 0.001, 6, 2,0.00001};
 TEST(SVM_KERNELS, operator){
     std::vector<double> vector1 = {2, 3, 4};
     std::vector<double> vector2 = {2, 3, 4};
@@ -37,9 +37,9 @@ TEST(SVM_KERNELS, operator){
     ASSERT_DOUBLE_EQ(polynomial_output, 900);
 }
 TEST(SVC_FUNCTIONS, predict_label) {
-SVC Linear_Estimator = SVC(SAMPLE_PROBLEM, linear_kernel);
-SVC RBF_Estimator = SVC(SAMPLE_PROBLEM, rbf_kernel);
-SVC Polynomial_Estimator = SVC(SAMPLE_PROBLEM, polynomial_kernel);
+SVC::SVM Linear_Estimator(SAMPLE_PROBLEM, linear_kernel);
+SVC::SVM RBF_Estimator(SAMPLE_PROBLEM, rbf_kernel);
+SVC::SVM Polynomial_Estimator(SAMPLE_PROBLEM, polynomial_kernel);
 Linear_Estimator.SMO();
 RBF_Estimator.SMO();
 Polynomial_Estimator.SMO();
