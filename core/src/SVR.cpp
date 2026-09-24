@@ -3,61 +3,66 @@ using namespace SVR;
 #define abs(x) (((x) < 0) ? -(x) : (x))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 #define min(a, b) (((a) < (b)) ? (a) : (b))
-SVM::SVM(Problem prob, Kernel const* k) : kernel(k),
-                                                       problem(prob),
-                                                       alpha(prob.size, 0),
-                                                       alpha_prime(prob.size, 0),
-                                                       unbiased_error(prob.size)
+SVM::SVM(Problem prob, Kernel const *k) : kernel(k),
+                                          problem(prob),
+                                          beta(prob.size, 0.0),
+                                          unbiased_error(prob.size),
+                                          error_up(prob.size),
+                                          error_low(prob.size)
 {
-    double max = double(-INFINITY); double min = double(INFINITY);
-    size_t max_idx = 0; size_t min_idx = 0;
-    for (size_t idx = 0; idx < unbiased_error.size(); idx++)
+    for (size_t i = 0; i < problem.size; i++)
     {
-        unbiased_error[idx] = problem.targets[idx];
-        if (max < unbiased_error[idx])
-        {
-            max = unbiased_error[idx];
-            max_idx = idx;
-        }
-        if (min > unbiased_error[idx])
-        {
-            min = unbiased_error[idx];
-            min_idx = idx;
-        }
+        unbiased_error[i] = problem.targets[i];
     }
-    b_up = min + problem.epsilon;
-    b_low = max - problem.epsilon;
-    i_up = min_idx;
-    i_low = max_idx;
+    update_error_up_low();
+    update_bounds();
 }
 
-void SVM::SMO()
+void SVM::SVM::update_error_up_low()
 {
-    int examine_all = 1;
-    int num_changed = 0;
-    while (num_changed > 0 || examine_all)
+    for (size_t idx = 0; idx < beta.size(); idx++)
     {
-        num_changed = 0;
-        if (examine_all)
+        if (beta[idx] > problem.mu)
+            error_low[idx] = unbiased_error[idx] - problem.epsilon;
+        else if (beta[idx] < -problem.mu && beta[idx] > -problem.C)
+            error_low[idx] = unbiased_error[idx] + problem.epsilon;
+        else if (beta[idx] <= problem.mu && beta[idx] >= -problem.mu)
         {
-            for (size_t i = 0; i < alpha.size(); i++)
-            {
-                num_changed += examineExample(i);
-            }
+            error_low[idx] = unbiased_error[idx] - problem.epsilon;
         }
         else
         {
-            for (size_t i = 0; i < alpha.size(); i++)
-            {
-                //implement check for some criteria
-                {
-                    num_changed += examineExample(i);
-                }
-            }
+            error_low[idx] = double(-INFINITY);
         }
-        if (examine_all == 1)
-            examine_all = 0;
-        else if (num_changed == 0)
-            examine_all = 1;
+    }
+    for (size_t idx = 0; idx < beta.size(); idx++)
+    {
+        if (beta[idx] > problem.mu && beta[idx] < problem.C)
+            error_up[idx] = unbiased_error[idx] - problem.epsilon;
+        else if (beta[idx] <= problem.mu)
+            error_up[idx] = unbiased_error[idx] + problem.epsilon;
+        else
+        {
+            error_up[idx] = double(INFINITY);
+        }
+    }
+}
+
+void SVM::update_bounds()
+{
+    b_up = double(INFINITY);
+    b_low = double(-INFINITY);
+    for (size_t idx = 0; idx < beta.size(); idx++)
+    {
+        if (error_up[idx] < b_up)
+        {
+            b_up = error_up[idx];
+            i_up = idx;
+        }
+        if (error_low[idx] > b_low)
+        {
+            b_low = error_low[idx];
+            i_low = idx;
+        }
     }
 }
