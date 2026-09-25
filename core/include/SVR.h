@@ -18,9 +18,10 @@ namespace SVR{
     class SVM{
         public:
             const Problem problem;
-            Kernel const* kernel;
-            SVM(Problem prob, Kernel const* k);
+            Kernel *const kernel;
+            SVM(Problem prob, Kernel * k);
             void SMO();
+            double predict(const std::vector<double>& input) const;
         private:
             std::vector<double> beta;
             std::vector<double> unbiased_error;
@@ -30,7 +31,8 @@ namespace SVR{
             size_t i_low;
             double b_up;
             double b_low;
-            int take_step(size_t i1, size_t i2);
+            int take_step(size_t i1, size_t i2, double beta_i1, double beta_i2);
+            void update_error(size_t i1, size_t i2, double delta_i1);
             void update_error_up_low();
             void update_bounds();
         

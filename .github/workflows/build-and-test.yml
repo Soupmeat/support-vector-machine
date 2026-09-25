@@ -2,9 +2,9 @@ name: build and test
 
 on:
   push:
-      branches: [ main ]
+      branches: [ svr_dev]
   pull_request:
-      branches: [ main ]
+      branches: [ svr_dev]
 
 jobs:
   build-and-test:
