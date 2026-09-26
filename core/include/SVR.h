@@ -36,6 +36,7 @@ namespace SVR{
             void update_error(size_t i1, size_t i2, double delta_i1);
             void update_error_up_low();
             void update_bounds();
+            bool is_non_bound(size_t i) const;
         
     };
 }

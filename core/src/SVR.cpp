@@ -3,12 +3,12 @@ using namespace SVR;
 #define abs(x) (((x) < 0) ? -(x) : (x))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 #define min(a, b) (((a) < (b)) ? (a) : (b))
-SVM::SVM(Problem prob, Kernel * k) : kernel(k),
-                                          problem(prob),
-                                          beta(prob.size, 0.0),
-                                          unbiased_error(prob.size),
-                                          error_up(prob.size),
-                                          error_low(prob.size)
+SVM::SVM(Problem prob, Kernel *k) : kernel(k),
+                                    problem(prob),
+                                    beta(prob.size, 0.0),
+                                    unbiased_error(prob.size),
+                                    error_up(prob.size),
+                                    error_low(prob.size)
 {
     for (size_t i = 0; i < problem.size; i++)
     {
@@ -18,13 +18,17 @@ SVM::SVM(Problem prob, Kernel * k) : kernel(k),
     update_bounds();
 }
 
+bool SVM::is_non_bound(size_t i) const
+{
+    return (abs(beta[i]) > problem.mu && abs(beta[i]) < problem.C - problem.mu);
+}
 void SVM::SVM::update_error_up_low()
 {
     for (size_t idx = 0; idx < beta.size(); idx++)
     {
         if (beta[idx] > problem.mu)
             error_low[idx] = unbiased_error[idx] - problem.epsilon;
-        else if (beta[idx] < -problem.mu && beta[idx] > -problem.C)
+        else if (beta[idx] < -problem.mu && beta[idx] > -problem.C + problem.mu)
             error_low[idx] = unbiased_error[idx] + problem.epsilon;
         else if (beta[idx] <= problem.mu && beta[idx] >= -problem.mu)
         {
@@ -37,7 +41,7 @@ void SVM::SVM::update_error_up_low()
     }
     for (size_t idx = 0; idx < beta.size(); idx++)
     {
-        if (beta[idx] > problem.mu && beta[idx] < problem.C)
+        if (beta[idx] > problem.mu && beta[idx] < problem.C - problem.mu)
             error_up[idx] = unbiased_error[idx] - problem.epsilon;
         else if (beta[idx] <= problem.mu)
             error_up[idx] = unbiased_error[idx] + problem.epsilon;
@@ -75,8 +79,10 @@ void SVM::update_error(size_t i1, size_t i2, double delta_i1)
     }
 }
 
-int SVM::take_step(size_t i1, size_t i2, double beta_i1, double beta_i2) {
-    if (i1 == i2) {
+int SVM::take_step(size_t i1, size_t i2, double beta_i1, double beta_i2)
+{
+    if (i1 == i2)
+    {
         return 0;
     }
 
@@ -87,11 +93,12 @@ int SVM::take_step(size_t i1, size_t i2, double beta_i1, double beta_i2) {
     double eta = K_11 + K_22 - 2.0 * K_12;
 
     double gamma = beta_i1 + beta_i2;
-    
+
     double L = max(-problem.C, gamma - problem.C);
     double H = min(problem.C, gamma + problem.C);
 
-    if (abs(L - H) <= problem.mu * (L + H + problem.mu)) {
+    if (abs(L - H) <= problem.mu * (L + H + problem.mu))
+    {
         return 0;
     }
 
@@ -99,27 +106,36 @@ int SVM::take_step(size_t i1, size_t i2, double beta_i1, double beta_i2) {
 
     double beta_i1_new = 0.0;
 
-    if (eta > problem.mu) {
+    if (eta > problem.mu)
+    {
         double delta = gap / eta;
         double beta_i_unc = beta_i1 + delta;
 
         beta_i1_new = max(L, min(H, beta_i_unc));
-    } else {
+    }
+    else
+    {
         double obj_L = L * gap - 0.5 * eta * (L * L);
         double obj_H = H * gap - 0.5 * eta * (H * H);
 
-        if (obj_L > obj_H + problem.mu) {
+        if (obj_L > obj_H + problem.mu)
+        {
             beta_i1_new = L;
-        } else if (obj_H > obj_L + problem.mu) {
+        }
+        else if (obj_H > obj_L + problem.mu)
+        {
             beta_i1_new = H;
-        } else {
+        }
+        else
+        {
             return 0;
         }
     }
 
     double d_i = beta_i1_new - beta_i1;
 
-    if (abs(d_i) < problem.mu * (abs(beta_i1_new) + abs(beta_i1) + problem.mu)) {
+    if (abs(d_i) < problem.mu * (abs(beta_i1_new) + abs(beta_i1) + problem.mu))
+    {
         return 0;
     }
 
@@ -131,10 +147,12 @@ int SVM::take_step(size_t i1, size_t i2, double beta_i1, double beta_i2) {
     return 1;
 }
 
-double SVM::predict(const std::vector<double>& input) const {
+double SVM::predict(const std::vector<double> &input) const
+{
     double sum = 0.0;
 
-    for (size_t i = 0; i < problem.training_input.size(); ++i) {
+    for (size_t i = 0; i < problem.training_input.size(); ++i)
+    {
         sum += beta[i] * (*kernel)(problem.training_input[i], input);
     }
 
@@ -142,42 +160,98 @@ double SVM::predict(const std::vector<double>& input) const {
 
     return sum + b;
 }
-int SVM::examine_example(size_t i2) {
+
+int SVM::examine_example(size_t i2)
+{
+    if (error_low[i2] > b_up + 2.0 * problem.tolerance)
+    {
+        size_t i1_idx = i2;
+        size_t i2_idx = i_up;
+
+        double beta_i1_old = beta[i1_idx];
+
+        if (take_step(i1_idx, i2_idx, beta[i1_idx], beta[i2_idx]))
+        {
+            update_error(i1_idx, i2_idx, beta[i1_idx] - beta_i1_old);
+            update_error_up_low();
+            update_bounds();
+            return 1;
+        }
+    }
+
+    if (error_up[i2] < b_low - 2.0 * problem.tolerance)
+    {
+        size_t i1_idx = i_low;
+        size_t i2_idx = i2;
+
+        double beta_i1_old = beta[i1_idx];
+
+        if (take_step(i1_idx, i2_idx, beta[i1_idx], beta[i2_idx]))
+        {
+            update_error(i1_idx, i2_idx, beta[i1_idx] - beta_i1_old);
+            update_error_up_low();
+            update_bounds();
+            return 1;
+        }
+    }
+
     return 0;
 }
 
-void SVM::SMO() {
+void SVM::SMO()
+{
     int examineAll = 0;
     int numChanged = 0;
 
-    do {
+    do
+    {
         numChanged = 0;
 
-        if (examineAll) {
-            for (size_t i = 0; i < problem.training_input.size(); ++i) {
+        if (examineAll)
+        {
+            for (size_t i = 0; i < problem.training_input.size(); ++i)
+            {
                 numChanged += examine_example(i);
             }
-        } else {
-            while (b_low > b_up + 2.0 * problem.tolerance) {
+        }
+        else
+        {
+            while (b_low > b_up + 2.0 * problem.tolerance)
+            {
                 size_t i1 = i_low;
                 size_t i2 = i_up;
                 double beta_i1_old = beta[i1];
 
-                if (take_step(i1, i2, beta[i1], beta[i2])) {
-                    double d_i = beta[i1] - beta_i1_old;
+                if (take_step(i1, i2, beta[i1], beta[i2]))
+                {
                     update_error(i1, i2, beta[i1] - beta_i1_old);
                     update_error_up_low();
                     update_bounds();
                     numChanged++;
-                } else {
+                }
+                else
+                {
                     break;
+                }
+            }
+            if (!numChanged)
+            {
+                for (size_t i = 0; i < problem.training_input.size(); ++i)
+                {
+                    if (is_non_bound(i))
+                    {
+                        numChanged += examine_example(i);
+                    }
                 }
             }
         }
 
-        if (examineAll == 1) {
+        if (examineAll == 1)
+        {
             examineAll = 0;
-        } else if (numChanged == 0) {
+        }
+        else if (numChanged == 0)
+        {
             examineAll = 1;
         }
     } while (numChanged > 0 || examineAll);

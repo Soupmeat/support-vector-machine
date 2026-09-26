@@ -71,12 +71,12 @@ TEST(SVR_FUNCTIONS, predict)
         {3.0, 2.0}};
 
     std::vector<double> TRUE_RESULT = {-2.0, 4.0, 5.0};
-    SVR::Problem SAMPLE_PROBLEM{X, Y, 1, 0.001, 0.1, 6, 2, 0.000000001};
+    const double EPSILON_TOLERANCE = 1e-5;
+    SVR::Problem SAMPLE_PROBLEM{X, Y, 1, 0.001, EPSILON_TOLERANCE, 6, 2, 0.00001};
     SVR::SVM Linear_Estimator(SAMPLE_PROBLEM, linear_kernel);
     Linear_Estimator.SMO();
-    const double EPSILON_TOLERANCE = 1e-3;
     for (size_t idx = 0; idx < T.size(); idx++)
     {
-        EXPECT_NEAR(Linear_Estimator.predict(T[idx]), TRUE_RESULT[idx], EPSILON_TOLERANCE);
+        EXPECT_NEAR(Linear_Estimator.predict(T[idx]), TRUE_RESULT[idx], 2 * EPSILON_TOLERANCE);
     }
 }
