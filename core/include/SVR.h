@@ -32,6 +32,7 @@ namespace SVR{
             double b_up;
             double b_low;
             int take_step(size_t i1, size_t i2, double beta_i1, double beta_i2);
+            int examine_example(size_t i2);
             void update_error(size_t i1, size_t i2, double delta_i1);
             void update_error_up_low();
             void update_bounds();

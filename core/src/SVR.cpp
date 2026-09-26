@@ -91,7 +91,7 @@ int SVM::take_step(size_t i1, size_t i2, double beta_i1, double beta_i2) {
     double L = max(-problem.C, gamma - problem.C);
     double H = min(problem.C, gamma + problem.C);
 
-    if (L == H) {
+    if (abs(L - H) <= problem.mu * (L + H + problem.mu)) {
         return 0;
     }
 
@@ -130,19 +130,6 @@ int SVM::take_step(size_t i1, size_t i2, double beta_i1, double beta_i2) {
 
     return 1;
 }
-void SVM::SMO(){
-    while (b_low > b_up + 2.0 * problem.tolerance){
-        double beta_i_old = beta[i_low];
-        double beta_j_old = beta[i_up];
-        int mod2 = take_step(i_low, i_up, beta_i_old, beta_j_old);
-        if (!mod2){
-            break;
-        }
-        update_error(i_low, i_up, beta[i_low] - beta_i_old);
-        update_error_up_low();
-        update_bounds();
-    }
-}
 
 double SVM::predict(const std::vector<double>& input) const {
     double sum = 0.0;
@@ -154,4 +141,44 @@ double SVM::predict(const std::vector<double>& input) const {
     double b = (b_low + b_up) / 2.0;
 
     return sum + b;
+}
+int SVM::examine_example(size_t i2) {
+    return 0;
+}
+
+void SVM::SMO() {
+    int examineAll = 0;
+    int numChanged = 0;
+
+    do {
+        numChanged = 0;
+
+        if (examineAll) {
+            for (size_t i = 0; i < problem.training_input.size(); ++i) {
+                numChanged += examine_example(i);
+            }
+        } else {
+            while (b_low > b_up + 2.0 * problem.tolerance) {
+                size_t i1 = i_low;
+                size_t i2 = i_up;
+                double beta_i1_old = beta[i1];
+
+                if (take_step(i1, i2, beta[i1], beta[i2])) {
+                    double d_i = beta[i1] - beta_i1_old;
+                    update_error(i1, i2, beta[i1] - beta_i1_old);
+                    update_error_up_low();
+                    update_bounds();
+                    numChanged++;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        if (examineAll == 1) {
+            examineAll = 0;
+        } else if (numChanged == 0) {
+            examineAll = 1;
+        }
+    } while (numChanged > 0 || examineAll);
 }

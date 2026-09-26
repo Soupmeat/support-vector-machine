@@ -62,7 +62,7 @@ int SVM::take_step(size_t i1, size_t i2)
     std::pair<double, double> L_H = compute_L_H(alph1, alpha[i2], y1, problem.labels[i2]);
     double L = L_H.first;
     double H = L_H.second;
-    if (L == H)
+    if (abs(L - H) <= eps * (L + H + eps))
         return 0;
     double k11 = (*kernel)(problem.training_input[i1], problem.training_input[i1]);
     double k12 = (*kernel)(problem.training_input[i1], problem.training_input[i2]);
