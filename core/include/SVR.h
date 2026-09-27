@@ -14,6 +14,7 @@ namespace SVR{
         const size_t size;
         const size_t no_dim;
         const double mu; // threshold for floating point comparison
+        const int max_iter = 1000;
     };
     class SVM{
         public:

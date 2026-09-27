@@ -13,6 +13,7 @@ namespace SVC
         const size_t size;
         const size_t no_dim;
         const double eps;
+        const int max_iter = 1000;
     };
 
     class SVM

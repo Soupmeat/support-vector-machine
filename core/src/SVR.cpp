@@ -20,7 +20,7 @@ SVM::SVM(Problem prob, Kernel *k) : kernel(k),
 
 bool SVM::is_non_bound(size_t i) const
 {
-    return (abs(beta[i]) > problem.mu && abs(beta[i]) < problem.C - problem.mu);
+    return (abs(beta[i]) > problem.mu && abs(beta[i]) < problem.C * ( 1 - problem.mu));
 }
 void SVM::SVM::update_error_up_low()
 {
@@ -28,7 +28,7 @@ void SVM::SVM::update_error_up_low()
     {
         if (beta[idx] > problem.mu)
             error_low[idx] = unbiased_error[idx] - problem.epsilon;
-        else if (beta[idx] < -problem.mu && beta[idx] > -problem.C + problem.mu)
+        else if (beta[idx] < -problem.mu && beta[idx] > -problem.C * (1 - problem.mu))
             error_low[idx] = unbiased_error[idx] + problem.epsilon;
         else if (beta[idx] <= problem.mu && beta[idx] >= -problem.mu)
         {
@@ -41,7 +41,7 @@ void SVM::SVM::update_error_up_low()
     }
     for (size_t idx = 0; idx < beta.size(); idx++)
     {
-        if (beta[idx] > problem.mu && beta[idx] < problem.C - problem.mu)
+        if (beta[idx] > problem.mu && beta[idx] < problem.C * (1 - problem.mu))
             error_up[idx] = unbiased_error[idx] - problem.epsilon;
         else if (beta[idx] <= problem.mu)
             error_up[idx] = unbiased_error[idx] + problem.epsilon;
@@ -97,7 +97,7 @@ int SVM::take_step(size_t i1, size_t i2, double beta_i1, double beta_i2)
     double L = max(-problem.C, gamma - problem.C);
     double H = min(problem.C, gamma + problem.C);
 
-    if (abs(L - H) <= problem.mu * (L + H + problem.mu))
+    if (H - L <= problem.mu * (abs(L) + abs(H) + problem.mu))
     {
         return 0;
     }
@@ -202,11 +202,11 @@ void SVM::SMO()
 {
     int examineAll = 0;
     int numChanged = 0;
-
+    int no_iter = 0;
     do
     {
         numChanged = 0;
-
+        no_iter++;
         if (examineAll)
         {
             for (size_t i = 0; i < problem.training_input.size(); ++i)
@@ -216,7 +216,8 @@ void SVM::SMO()
         }
         else
         {
-            while (b_low > b_up + 2.0 * problem.tolerance)
+            
+            if (b_low > b_up + 2.0 * problem.tolerance)
             {
                 size_t i1 = i_low;
                 size_t i2 = i_up;
@@ -228,10 +229,6 @@ void SVM::SMO()
                     update_error_up_low();
                     update_bounds();
                     numChanged++;
-                }
-                else
-                {
-                    break;
                 }
             }
             if (!numChanged)
@@ -254,5 +251,5 @@ void SVM::SMO()
         {
             examineAll = 1;
         }
-    } while (numChanged > 0 || examineAll);
+    } while ((numChanged > 0 || examineAll) && (no_iter < problem.max_iter));
 }

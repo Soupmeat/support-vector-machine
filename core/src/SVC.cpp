@@ -39,9 +39,9 @@ void SVM::update_bias(double a1_new, size_t i1, double a2_new, size_t i2)
     double b2 = error[i2] + problem.labels[i1] * (a1_new - alpha[i1]) * xi1_dot_xi2 +
                 problem.labels[i2] * (a2_new - alpha[i2]) * xi2_dot_xi2 + bias;
     double eps = problem.eps;
-    if (a1_new > eps && a1_new < problem.C - eps)
+    if (a1_new > eps && a1_new < problem.C * (1 - eps))
         bias = b1;
-    else if (a2_new > eps && a2_new < problem.C - eps)
+    else if (a2_new > eps && a2_new < problem.C * (1 - eps))
         bias = b2;
     else
         bias = (b1 + b2) / 2;
@@ -62,7 +62,7 @@ int SVM::take_step(size_t i1, size_t i2)
     std::pair<double, double> L_H = compute_L_H(alph1, alpha[i2], y1, problem.labels[i2]);
     double L = L_H.first;
     double H = L_H.second;
-    if (abs(L - H) <= eps * (L + H + eps))
+    if (H - L <= eps * (abs(L) + abs(H) + eps))
         return 0;
     double k11 = (*kernel)(problem.training_input[i1], problem.training_input[i1]);
     double k12 = (*kernel)(problem.training_input[i1], problem.training_input[i2]);
@@ -97,22 +97,22 @@ int SVM::take_step(size_t i1, size_t i2)
     if (abs(a2 - alph2) < eps * (a2 + alph2 + eps))
         return 0;
     double a1 = max(0, alph1 + s * (alph2 - a2));
-    if ((alph1 > eps && alph1 < problem.C - eps) && !(a1 > eps && a1 < problem.C - eps))
+    if ((alph1 > eps && alph1 < problem.C * (1 - eps)) && !(a1 > eps && a1 < problem.C * (1 - eps)))
     {
         nonbound--;
         isnonbound[i1] = false;
     }
-    else if (!(alph1 > eps && alph1 < problem.C - eps) && (a1 > eps && a1 < problem.C - eps))
+    else if (!(alph1 > eps && alph1 < problem.C * (1 - eps)) && (a1 > eps && a1 < problem.C * (1 - eps)))
     {
         nonbound++;
         isnonbound[i1] = true;
     }
-    if ((alph2 > eps && alph2 < problem.C - eps) && !(a2 > eps && a2 < problem.C - eps))
+    if ((alph2 > eps && alph2 < problem.C * (1 - eps)) && !(a2 > eps && a2 < problem.C * (1 - eps)))
     {
         nonbound--;
         isnonbound[i2] = false;
     }
-    else if (!(alph2 > eps && alph2 < problem.C - eps) && (a2 > eps && a2 < problem.C - eps))
+    else if (!(alph2 > eps && alph2 < problem.C * (1 - eps)) && (a2 > eps && a2 < problem.C * (1 - eps)))
     {
         nonbound++;
         isnonbound[i2] = true;
@@ -130,8 +130,10 @@ void SVM::SMO()
 {
     int num_changed = 0;
     int examine_all = 1;
-    while (num_changed > 0 || examine_all)
+    int no_iter = 0;
+    while ((num_changed > 0 || examine_all) && (no_iter < problem.max_iter))
     {
+        no_iter++;
         num_changed = 0;
         if (examine_all)
         {
