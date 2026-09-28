@@ -75,7 +75,7 @@ void SVM::update_error(size_t i1, size_t i2, double delta_i1)
 {
     for (size_t idx = 0; idx < beta.size(); idx++)
     {
-        unbiased_error[idx] -= delta_i1 * ((*kernel)(problem.training_input[i1], problem.training_input[idx]) - (*kernel)(problem.training_input[i2], problem.training_input[idx]));
+        unbiased_error[idx] -= delta_i1 * ((*kernel)(ROW_SPAN(problem.training_input, i1, problem.no_dim), ROW_SPAN(problem.training_input, idx, problem.no_dim)) - (*kernel)(ROW_SPAN(problem.training_input, i2, problem.no_dim), ROW_SPAN(problem.training_input, idx, problem.no_dim)));
     }
 }
 
@@ -86,9 +86,9 @@ int SVM::take_step(size_t i1, size_t i2, double beta_i1, double beta_i2)
         return 0;
     }
 
-    double K_11 = (*kernel)(problem.training_input[i1], problem.training_input[i1]);
-    double K_22 = (*kernel)(problem.training_input[i2], problem.training_input[i2]);
-    double K_12 = (*kernel)(problem.training_input[i1], problem.training_input[i2]);
+    double K_11 = (*kernel)(ROW_SPAN(problem.training_input, i1, problem.no_dim), ROW_SPAN(problem.training_input, i1, problem.no_dim));
+    double K_22 = (*kernel)(ROW_SPAN(problem.training_input, i2, problem.no_dim), ROW_SPAN(problem.training_input, i2, problem.no_dim));
+    double K_12 = (*kernel)(ROW_SPAN(problem.training_input, i1, problem.no_dim), ROW_SPAN(problem.training_input, i2, problem.no_dim));
 
     double eta = K_11 + K_22 - 2.0 * K_12;
 
@@ -151,9 +151,9 @@ double SVM::predict(const std::vector<double> &input) const
 {
     double sum = 0.0;
 
-    for (size_t i = 0; i < problem.training_input.size(); ++i)
+    for (size_t i = 0; i < problem.size; ++i)
     {
-        sum += beta[i] * (*kernel)(problem.training_input[i], input);
+        sum += beta[i] * (*kernel)(ROW_SPAN(problem.training_input, i, problem.no_dim), ROW_SPAN(input, 0, input.size()));
     }
 
     double b = (b_low + b_up) / 2.0;
@@ -209,7 +209,7 @@ void SVM::SMO()
         no_iter++;
         if (examineAll)
         {
-            for (size_t i = 0; i < problem.training_input.size(); ++i)
+            for (size_t i = 0; i < problem.size; ++i)
             {
                 numChanged += examine_example(i);
             }
@@ -233,7 +233,7 @@ void SVM::SMO()
             }
             if (!numChanged)
             {
-                for (size_t i = 0; i < problem.training_input.size(); ++i)
+                for (size_t i = 0; i < problem.size; ++i)
                 {
                     if (is_non_bound(i))
                     {

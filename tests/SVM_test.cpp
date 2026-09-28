@@ -49,13 +49,8 @@ TEST(SVC_FUNCTIONS, predict_label)
 
 TEST(SVR_FUNCTIONS, predict)
 {
-    std::vector<std::vector<double>> X = {
-        {-2.0, -1.0},
-        {-1.0, -1.0},
-        {-1.0, -2.0},
-        {1.0, 1.0},
-        {1.0, 2.0},
-        {2.0, 1.0}};
+    std::vector<double> X = {
+        -2.0, -1.0, -1.0, -1.0, -1.0, -2.0, 1.0, 1.0, 1.0, 2.0, 2.0, 1.0};
     std::vector<double> Y = {-3.0, -2.0, -3.0, 2.0, 3.0, 3.0};
 
     std::vector<std::vector<double>> T = {
@@ -77,19 +72,17 @@ TEST(SVR_FUNCTIONS, predict)
 TEST(SVC_FUNCTIONS, xor_problem_rbf)
 {
     std::vector<double> X = {
-        1.0,  1.0,
-       -1.0, -1.0,
+        1.0, 1.0,
+        -1.0, -1.0,
         1.0, -1.0,
-       -1.0,  1.0
-    };
+        -1.0, 1.0};
     std::vector<int> Y = {-1, -1, 1, 1};
 
     std::vector<std::vector<double>> T = {
-        { 0.8,  0.8},
+        {0.8, 0.8},
         {-0.8, -0.8},
-        { 0.8, -0.8},
-        {-0.8,  0.8}
-    };
+        {0.8, -0.8},
+        {-0.8, 0.8}};
     std::vector<int> TRUE_RESULT = {-1, -1, 1, 1};
 
     // SVC::Problem{training_input, labels, C, tolerance, size, no_dim, eps}
@@ -113,13 +106,12 @@ TEST(SVC_FUNCTIONS, concentric_circles_rbf)
         // Inner circle (-1)
         0.5, 0.0, -0.5, 0.0, 0.0, 0.5, 0.0, -0.5,
         // Outer circle (+1)
-        2.0, 0.0, -2.0, 0.0, 0.0, 2.0, 0.0, -2.0
-    };
+        2.0, 0.0, -2.0, 0.0, 0.0, 2.0, 0.0, -2.0};
     std::vector<int> Y = {-1, -1, -1, -1, 1, 1, 1, 1};
 
     std::vector<std::vector<double>> T = {
-        { 0.2,  0.2}, // Deep inside inner circle
-        { 1.8,  1.8}  // Deep inside outer circle
+        {0.2, 0.2}, // Deep inside inner circle
+        {1.8, 1.8}  // Deep inside outer circle
     };
     std::vector<int> TRUE_RESULT = {-1, 1};
 
@@ -139,8 +131,7 @@ TEST(SVC_FUNCTIONS, duplicate_inputs_robustness)
 {
     std::vector<double> X = {
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-        -1.0, -1.0, -1.0, -1.0
-    };
+        -1.0, -1.0, -1.0, -1.0};
     std::vector<int> Y = {1, 1, 1, -1, -1};
 
     SVC::Problem PROBLEM{X, Y, 1.0, 0.001, 5, 2, 0.00001};
@@ -153,7 +144,6 @@ TEST(SVC_FUNCTIONS, duplicate_inputs_robustness)
     EXPECT_EQ(Estimator.predict_label({-1.0, -1.0}), -1);
 }
 
-
 // ============================================================================
 // SVR (REGRESSION) TEST CASES
 // ============================================================================
@@ -162,20 +152,20 @@ TEST(SVC_FUNCTIONS, duplicate_inputs_robustness)
 // Tests continuous non-linear regression using RBF kernel
 TEST(SVR_FUNCTIONS, sine_wave_rbf)
 {
-    std::vector<std::vector<double>> X = {
-        {-3.0}, {-2.0}, {-1.0}, {0.0}, {1.0}, {2.0}, {3.0}
-    };
+    std::vector<double> X = {
+        -3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0};
     std::vector<double> Y;
-    for (const auto& x : X) {
-        Y.push_back(std::sin(x[0]));
+    for (const double x : X)
+    {
+        Y.push_back(std::sin(x));
     }
 
     // Unseen test mid-points
     std::vector<std::vector<double>> T = {
-        {0.5},   // sin(0.5)  ~  0.4794
-        {-1.57}  // sin(-1.57) ~ -0.9999
+        {0.5},  // sin(0.5)  ~  0.4794
+        {-1.57} // sin(-1.57) ~ -0.9999
     };
-    std::vector<double> TRUE_RESULT = { std::sin(0.5), std::sin(-1.57) };
+    std::vector<double> TRUE_RESULT = {std::sin(0.5), std::sin(-1.57)};
 
     const double EPS = 0.05;
     // SVR::Problem{training_input, targets, C, tolerance, epsilon, size, no_dim, mu}
@@ -194,19 +184,18 @@ TEST(SVR_FUNCTIONS, sine_wave_rbf)
 // True model: y = 2.0*x1 - 3.0*x2 + 0.5*x3
 TEST(SVR_FUNCTIONS, multivariate_linear_3d)
 {
-    std::vector<std::vector<double>> X = {
-        { 1.0,  0.0,  0.0}, // y = 2.0
-        { 0.0,  1.0,  0.0}, // y = -3.0
-        { 0.0,  0.0,  1.0}, // y = 0.5
-        { 1.0,  1.0,  1.0}, // y = -0.5
-        {-1.0,  2.0,  0.0}  // y = -8.0
+    std::vector<double> X = {
+        1.0, 0.0, 0.0, // y = 2.0
+        0.0, 1.0, 0.0, // y = -3.0
+        0.0, 0.0, 1.0, // y = 0.5
+        1.0, 1.0, 1.0, // y = -0.5
+        -1.0, 2.0, 0.0 // y = -8.0
     };
     std::vector<double> Y = {2.0, -3.0, 0.5, -0.5, -8.0};
 
     // Test point: {2.0, 1.0, -2.0} -> y = 2(2) - 3(1) + 0.5(-2) = 0.0
     std::vector<std::vector<double>> T = {
-        {2.0, 1.0, -2.0}
-    };
+        {2.0, 1.0, -2.0}};
     std::vector<double> TRUE_RESULT = {0.0};
 
     const double EPS = 0.001;
@@ -224,15 +213,12 @@ TEST(SVR_FUNCTIONS, multivariate_linear_3d)
 // Tests Polynomial Kernel (degree 2, bias 1)
 TEST(SVR_FUNCTIONS, quadratic_polynomial_kernel)
 {
-    std::vector<std::vector<double>> X = {
-        {-2.0}, {-1.0}, {0.0}, {1.0}, {2.0}
-    };
+    std::vector<double> X = {-2.0, -1.0, 0.0, 1.0, 2.0};
     std::vector<double> Y = {3.0, 0.0, -1.0, 0.0, 3.0}; // y = x^2 - 1
 
     // Test point: {1.5} -> y = 1.5^2 - 1 = 1.25
     std::vector<std::vector<double>> T = {
-        {1.5}, {-0.5}
-    };
+        {1.5}, {-0.5}};
     std::vector<double> TRUE_RESULT = {1.25, -0.75};
 
     const double EPS = 0.01;

@@ -6,7 +6,7 @@
 namespace SVR{
     struct Problem
     {
-        const std::vector<std::vector<double>> training_input;
+        const std::vector<double> training_input;
         const std::vector<double> targets;
         const double C;
         const double tolerance; // for stopping criteria
