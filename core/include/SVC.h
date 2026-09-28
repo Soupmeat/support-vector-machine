@@ -6,7 +6,7 @@ namespace SVC
 {
     struct Problem
     {
-        const std::vector<std::vector<double>> training_input;
+        const std::vector<double> training_input;
         const std::vector<int> labels;
         const double C;
         const double tolerance;

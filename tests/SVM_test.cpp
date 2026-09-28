@@ -22,14 +22,7 @@ TEST(SVM_KERNELS, operator)
 TEST(SVC_FUNCTIONS, predict_label)
 {
     // toy sample (https://github.com/scikit-learn/scikit-learn/blob/main/sklearn/svm/tests/test_svm.py)
-    std::vector<std::vector<double>> X = {
-        {-2.0, -1.0},
-        {-1.0, -1.0},
-        {-1.0, -2.0},
-        {1.0, 1.0},
-        {1.0, 2.0},
-        {2.0, 1.0}};
-
+    std::vector<double> X = {-2.0, -1.0, -1.0, -1.0, -1.0, -2.0, 1.0, 1.0, 1.0, 2.0, 2.0, 1.0};
     std::vector<int> Y = {-1, -1, -1, 1, 1, 1};
 
     std::vector<std::vector<double>> T = {
@@ -83,11 +76,11 @@ TEST(SVR_FUNCTIONS, predict)
 
 TEST(SVC_FUNCTIONS, xor_problem_rbf)
 {
-    std::vector<std::vector<double>> X = {
-        { 1.0,  1.0},
-        {-1.0, -1.0},
-        { 1.0, -1.0},
-        {-1.0,  1.0}
+    std::vector<double> X = {
+        1.0,  1.0,
+       -1.0, -1.0,
+        1.0, -1.0,
+       -1.0,  1.0
     };
     std::vector<int> Y = {-1, -1, 1, 1};
 
@@ -116,11 +109,11 @@ TEST(SVC_FUNCTIONS, xor_problem_rbf)
 // Inner ring (radius ~ 0.5) is class -1, Outer ring (radius ~ 2.0) is class +1
 TEST(SVC_FUNCTIONS, concentric_circles_rbf)
 {
-    std::vector<std::vector<double>> X = {
+    std::vector<double> X = {
         // Inner circle (-1)
-        { 0.5,  0.0}, {-0.5,  0.0}, { 0.0,  0.5}, { 0.0, -0.5},
+        0.5, 0.0, -0.5, 0.0, 0.0, 0.5, 0.0, -0.5,
         // Outer circle (+1)
-        { 2.0,  0.0}, {-2.0,  0.0}, { 0.0,  2.0}, { 0.0, -2.0}
+        2.0, 0.0, -2.0, 0.0, 0.0, 2.0, 0.0, -2.0
     };
     std::vector<int> Y = {-1, -1, -1, -1, 1, 1, 1, 1};
 
@@ -144,9 +137,9 @@ TEST(SVC_FUNCTIONS, concentric_circles_rbf)
 // Tests whether duplicate inputs with identical feature vectors cause infinite loops or zero-division in SMO
 TEST(SVC_FUNCTIONS, duplicate_inputs_robustness)
 {
-    std::vector<std::vector<double>> X = {
-        {1.0, 1.0}, {1.0, 1.0}, {1.0, 1.0},
-        {-1.0, -1.0}, {-1.0, -1.0}
+    std::vector<double> X = {
+        1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+        -1.0, -1.0, -1.0, -1.0
     };
     std::vector<int> Y = {1, 1, 1, -1, -1};
 
