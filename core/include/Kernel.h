@@ -1,7 +1,6 @@
 #pragma once
 #include <vector>
 #include <cmath>
-#include <span>
 
 enum class KernelType {
     Linear,

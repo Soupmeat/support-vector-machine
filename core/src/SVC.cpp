@@ -1,4 +1,5 @@
 #include <SVC.h>
+#include <omp.h>
 using namespace SVC;
 #define abs(x) (((x) < 0) ? -(x) : (x))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
@@ -14,6 +15,7 @@ SVM::SVM(Problem prob, Kernel *k, unsigned int seed) : kernel(k),
                                                        nonbound(0),
                                                        rng(seed)
 {
+    #pragma omp parallel for schedule(static)
     for (size_t idx = 0; idx < error.size(); idx++)
     {
         error[idx] = -problem.get_label(idx);
@@ -22,6 +24,7 @@ SVM::SVM(Problem prob, Kernel *k, unsigned int seed) : kernel(k),
 
 void SVM::update_weights_if_linear(double a1_new, size_t i1, double a2_new, size_t i2)
 {
+    #pragma omp parallel for schedule(static)
     for (size_t dim = 0; dim < weights.size(); dim++)
     {
         weights[dim] += problem.get_label(i1) * (a1_new - alpha[i1]) * problem.get(i1, dim) +
@@ -228,6 +231,7 @@ double SVM::predict(const double* input)
     if (kernel->type != KernelType::Linear)
     {
         double output = -bias;
+        #pragma omp parallel for schedule(static) reduction(+:output)
         for (size_t idx = 0; idx < problem.size; idx++)
         {
             if (alpha[idx] > problem.eps)
@@ -240,6 +244,7 @@ double SVM::predict(const double* input)
     else
     {
         double output = -bias;
+        #pragma omp parallel for schedule(static) reduction(+:output)
         for (size_t i = 0; i < problem.no_dim; i++)
         {
             output += weights[i] * input[i];
@@ -252,6 +257,7 @@ int SVM::predict_label(const double* input)
     if (kernel->type != KernelType::Linear)
     {
         double output = -bias;
+        #pragma omp parallel for schedule(static) reduction(+:output) 
         for (size_t idx = 0; idx < problem.size; idx++)
         {
             if (alpha[idx] > problem.eps)
@@ -264,6 +270,8 @@ int SVM::predict_label(const double* input)
     else
     {
         double output = -bias;
+
+        #pragma omp parallel for simd reduction(+:output) schedule(static)
         for (size_t i = 0; i < problem.no_dim; i++)
         {
             output += weights[i] * input[i];
@@ -274,6 +282,7 @@ int SVM::predict_label(const double* input)
 
 void SVM::update_errors(double diff_a1, double diff_a2, double diff_b, size_t i1, size_t i2)
 {
+    #pragma omp parallel for schedule(static)
     for (size_t idx = 0; idx < error.size(); idx++)
     {
         error[idx] += problem.labels[i1] *
@@ -288,8 +297,8 @@ void SVM::update_errors(double diff_a1, double diff_a2, double diff_b, size_t i1
 
 std::pair<double, double> SVM::compute_L_H(double a1, double a2, int y1, int y2)
 {
-    double L = 0;
-    double H = 0;
+    double L;
+    double H;
     if (y1 != y2)
     {
         L = max(0.0, a2 - a1);

@@ -2,6 +2,7 @@
 #include <vector>
 #include <random>
 #include <Kernel.h>
+#include <span>
 
 namespace SVR{
     struct Problem

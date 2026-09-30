@@ -17,4 +17,9 @@ target_link_libraries(
 target_link_libraries(SVM_test SVM_lib)
 
 include(GoogleTest)
-gtest_discover_tests(SVM_test)
+foreach(THREADS 1 4 8)
+    gtest_discover_tests(SVM_test
+        TEST_PREFIX "OMP_${THREADS}T_"
+        PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=${THREADS}"
+    )
+endforeach()
