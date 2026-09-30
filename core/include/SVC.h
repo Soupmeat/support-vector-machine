@@ -2,18 +2,32 @@
 #include <vector>
 #include <random>
 #include <Kernel.h>
+#include <span>
 namespace SVC
 {
     struct Problem
     {
-        const std::vector<double> training_input;
-        const std::vector<int> labels;
+        const double* training_input;
+        const int* labels;
         const double C;
         const double tolerance;
         const size_t size;
         const size_t no_dim;
         const double eps;
         const int max_iter = 1000;
+
+        double get(size_t row, size_t index) const
+        {
+            return training_input[row * no_dim + index];
+        }
+        double get_label(size_t row) const
+        {
+            return labels[row];
+        }
+        std::span<const double> get_row(size_t row) const
+        {
+            return std::span<const double>(training_input + (row * no_dim), no_dim);
+        }
     };
 
     class SVM
@@ -21,8 +35,8 @@ namespace SVC
     public:
         const Problem problem;
         Kernel *const kernel;
-        double predict(const std::vector<double> &input);
-        int predict_label(const std::vector<double> &input);
+        double predict(const double* input);
+        int predict_label(const double* input);
         void SMO();
         SVM(Problem prob, Kernel *k, unsigned int seed = 42);
 

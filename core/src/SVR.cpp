@@ -12,7 +12,7 @@ SVM::SVM(Problem prob, Kernel *k) : kernel(k),
 {
     for (size_t i = 0; i < problem.size; i++)
     {
-        unbiased_error[i] = problem.targets[i];
+        unbiased_error[i] = problem.get_target(i);
     }
     update_error_up_low();
     update_bounds();
@@ -75,7 +75,7 @@ void SVM::update_error(size_t i1, size_t i2, double delta_i1)
 {
     for (size_t idx = 0; idx < beta.size(); idx++)
     {
-        unbiased_error[idx] -= delta_i1 * ((*kernel)(ROW_SPAN(problem.training_input, i1, problem.no_dim), ROW_SPAN(problem.training_input, idx, problem.no_dim)) - (*kernel)(ROW_SPAN(problem.training_input, i2, problem.no_dim), ROW_SPAN(problem.training_input, idx, problem.no_dim)));
+        unbiased_error[idx] -= delta_i1 * ((*kernel)(problem.get_row(i1).data(), problem.get_row(idx).data(), problem.no_dim) - (*kernel)(problem.get_row(i2).data(), problem.get_row(idx).data(), problem.no_dim));
     }
 }
 
@@ -86,9 +86,9 @@ int SVM::take_step(size_t i1, size_t i2, double beta_i1, double beta_i2)
         return 0;
     }
 
-    double K_11 = (*kernel)(ROW_SPAN(problem.training_input, i1, problem.no_dim), ROW_SPAN(problem.training_input, i1, problem.no_dim));
-    double K_22 = (*kernel)(ROW_SPAN(problem.training_input, i2, problem.no_dim), ROW_SPAN(problem.training_input, i2, problem.no_dim));
-    double K_12 = (*kernel)(ROW_SPAN(problem.training_input, i1, problem.no_dim), ROW_SPAN(problem.training_input, i2, problem.no_dim));
+    double K_11 = (*kernel)(problem.get_row(i1).data(), problem.get_row(i1).data(), problem.no_dim);
+    double K_22 = (*kernel)(problem.get_row(i2).data(), problem.get_row(i2).data(), problem.no_dim);
+    double K_12 = (*kernel)(problem.get_row(i1).data(), problem.get_row(i2).data(), problem.no_dim);
 
     double eta = K_11 + K_22 - 2.0 * K_12;
 
@@ -147,13 +147,13 @@ int SVM::take_step(size_t i1, size_t i2, double beta_i1, double beta_i2)
     return 1;
 }
 
-double SVM::predict(const std::vector<double> &input) const
+double SVM::predict(const double* input) const
 {
     double sum = 0.0;
 
     for (size_t i = 0; i < problem.size; ++i)
     {
-        sum += beta[i] * (*kernel)(ROW_SPAN(problem.training_input, i, problem.no_dim), ROW_SPAN(input, 0, input.size()));
+        sum += beta[i] * (*kernel)(problem.get_row(i).data(), input, problem.no_dim);
     }
 
     double b = (b_low + b_up) / 2.0;

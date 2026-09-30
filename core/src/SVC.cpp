@@ -16,7 +16,7 @@ SVM::SVM(Problem prob, Kernel *k, unsigned int seed) : kernel(k),
 {
     for (size_t idx = 0; idx < error.size(); idx++)
     {
-        error[idx] = -problem.labels[idx];
+        error[idx] = -problem.get_label(idx);
     }
 }
 
@@ -24,20 +24,20 @@ void SVM::update_weights_if_linear(double a1_new, size_t i1, double a2_new, size
 {
     for (size_t dim = 0; dim < weights.size(); dim++)
     {
-        weights[dim] += problem.labels[i1] * (a1_new - alpha[i1]) * problem.training_input[i1 * problem.no_dim + dim] +
-                        problem.labels[i2] * (a2_new - alpha[i2]) * problem.training_input[i2 * problem.no_dim + dim];
+        weights[dim] += problem.get_label(i1) * (a1_new - alpha[i1]) * problem.get(i1, dim) +
+                        problem.get_label(i2) * (a2_new - alpha[i2]) * problem.get(i2, dim);
     }
 }
 
 void SVM::update_bias(double a1_new, size_t i1, double a2_new, size_t i2)
 {
-    double xi1_dot_xi1 = (*kernel)(ROW_SPAN(problem.training_input, i1, problem.no_dim), ROW_SPAN(problem.training_input, i1, problem.no_dim));
-    double xi1_dot_xi2 = (*kernel)(ROW_SPAN(problem.training_input, i1, problem.no_dim), ROW_SPAN(problem.training_input, i2, problem.no_dim));
-    double xi2_dot_xi2 = (*kernel)(ROW_SPAN(problem.training_input, i2, problem.no_dim), ROW_SPAN(problem.training_input, i2, problem.no_dim));
-    double b1 = error[i1] + problem.labels[i1] * (a1_new - alpha[i1]) * xi1_dot_xi1 +
-                problem.labels[i2] * (a2_new - alpha[i2]) * xi1_dot_xi2 + bias;
-    double b2 = error[i2] + problem.labels[i1] * (a1_new - alpha[i1]) * xi1_dot_xi2 +
-                problem.labels[i2] * (a2_new - alpha[i2]) * xi2_dot_xi2 + bias;
+    double xi1_dot_xi1 = (*kernel)(problem.get_row(i1).data(), problem.get_row(i1).data(), problem.get_row(i1).size());
+    double xi1_dot_xi2 = (*kernel)(problem.get_row(i1).data(), problem.get_row(i2).data(), problem.get_row(i1).size());
+    double xi2_dot_xi2 = (*kernel)(problem.get_row(i2).data(), problem.get_row(i2).data(), problem.get_row(i2).size());
+    double b1 = error[i1] + problem.get_label(i1) * (a1_new - alpha[i1]) * xi1_dot_xi1 +
+                problem.get_label(i2) * (a2_new - alpha[i2]) * xi1_dot_xi2 + bias;
+    double b2 = error[i2] + problem.get_label(i1) * (a1_new - alpha[i1]) * xi1_dot_xi2 +
+                problem.get_label(i2) * (a2_new - alpha[i2]) * xi2_dot_xi2 + bias;
     double eps = problem.eps;
     if (a1_new > eps && a1_new < problem.C * (1 - eps))
         bias = b1;
@@ -53,20 +53,20 @@ int SVM::take_step(size_t i1, size_t i2)
         return 0;
     double alph1 = alpha[i1];
     double alph2 = alpha[i2];
-    double y1 = problem.labels[i1];
-    double y2 = problem.labels[i2];
+    double y1 = problem.get_label(i1);
+    double y2 = problem.get_label(i2);
     double E1 = error[i1];
     double E2 = error[i2];
     double s = y1 * y2;
     double eps = problem.eps;
-    std::pair<double, double> L_H = compute_L_H(alph1, alpha[i2], y1, problem.labels[i2]);
+    std::pair<double, double> L_H = compute_L_H(alph1, alpha[i2], y1, problem.get_label(i2));
     double L = L_H.first;
     double H = L_H.second;
     if (H - L <= eps * (abs(L) + abs(H) + eps))
         return 0;
-    double k11 = (*kernel)(ROW_SPAN(problem.training_input, i1, problem.no_dim), ROW_SPAN(problem.training_input, i1, problem.no_dim));
-    double k12 = (*kernel)(ROW_SPAN(problem.training_input, i1, problem.no_dim), ROW_SPAN(problem.training_input, i2, problem.no_dim));
-    double k22 = (*kernel)(ROW_SPAN(problem.training_input, i2, problem.no_dim), ROW_SPAN(problem.training_input, i2, problem.no_dim));
+    double k11 = (*kernel)(problem.get_row(i1).data(), problem.get_row(i1).data(), problem.get_row(i1).size());
+    double k12 = (*kernel)(problem.get_row(i1).data(), problem.get_row(i2).data(), problem.get_row(i1).size());
+    double k22 = (*kernel)(problem.get_row(i2).data(), problem.get_row(i2).data(), problem.get_row(i2).size());
     double eta = k11 + k22 - 2 * k12;
     double a2;
     double old_bias = bias;
@@ -223,7 +223,7 @@ size_t SVM::select_optimal_i1(size_t i2)
     return optimal_i1;
 }
 
-double SVM::predict(const std::vector<double> &input)
+double SVM::predict(const double* input)
 {
     if (kernel->type != KernelType::Linear)
     {
@@ -232,7 +232,7 @@ double SVM::predict(const std::vector<double> &input)
         {
             if (alpha[idx] > problem.eps)
             {
-                output += alpha[idx] * problem.labels[idx] * (*kernel)(ROW_SPAN(problem.training_input, idx, problem.no_dim), ROW_SPAN(input, 0, input.size()));
+                output += alpha[idx] * problem.labels[idx] * (*kernel)(problem.get_row(idx).data(), input, problem.no_dim);
             }
         }
         return output;
@@ -240,14 +240,14 @@ double SVM::predict(const std::vector<double> &input)
     else
     {
         double output = -bias;
-        for (size_t i = 0; i < input.size(); i++)
+        for (size_t i = 0; i < problem.no_dim; i++)
         {
             output += weights[i] * input[i];
         }
         return output;
     }
 }
-int SVM::predict_label(const std::vector<double> &input)
+int SVM::predict_label(const double* input)
 {
     if (kernel->type != KernelType::Linear)
     {
@@ -256,7 +256,7 @@ int SVM::predict_label(const std::vector<double> &input)
         {
             if (alpha[idx] > problem.eps)
             {
-                output += alpha[idx] * problem.labels[idx] * (*kernel)(ROW_SPAN(problem.training_input, idx, problem.no_dim), ROW_SPAN(input, 0, input.size()));
+                output += alpha[idx] * problem.labels[idx] * (*kernel)(problem.get_row(idx).data(), input, problem.no_dim);
             }
         }
         return (output > problem.eps ? 1 : -1);
@@ -264,7 +264,7 @@ int SVM::predict_label(const std::vector<double> &input)
     else
     {
         double output = -bias;
-        for (size_t i = 0; i < input.size(); i++)
+        for (size_t i = 0; i < problem.no_dim; i++)
         {
             output += weights[i] * input[i];
         }
@@ -278,10 +278,10 @@ void SVM::update_errors(double diff_a1, double diff_a2, double diff_b, size_t i1
     {
         error[idx] += problem.labels[i1] *
                           diff_a1 *
-                          (*kernel)(ROW_SPAN(problem.training_input, idx, problem.no_dim), ROW_SPAN(problem.training_input, i1, problem.no_dim)) +
+                          (*kernel)(problem.get_row(idx).data(), problem.get_row(i1).data(), problem.no_dim) +
                       problem.labels[i2] *
                           diff_a2 *
-                          (*kernel)(ROW_SPAN(problem.training_input, idx, problem.no_dim), ROW_SPAN(problem.training_input, i2, problem.no_dim)) -
+                          (*kernel)(problem.get_row(idx).data(), problem.get_row(i2).data(), problem.no_dim) -
                       diff_b;
     }
 }

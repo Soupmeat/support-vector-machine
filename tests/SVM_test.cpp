@@ -3,18 +3,22 @@
 #include <vector>
 #include <SVR.h>
 
-Kernel *linear_kernel = new LinearKernel();
-Kernel *rbf_kernel = new RBFKernel(0.5);
-Kernel *polynomial_kernel = new PolynomialKernel(2, 1);
+LinearKernel kernel1 = LinearKernel();
+RBFKernel kernel2 = RBFKernel(0.5);
+PolynomialKernel kernel3 = PolynomialKernel(2, 1);
+Kernel *linear_kernel = &kernel1;
+Kernel *rbf_kernel = &kernel2;
+Kernel *polynomial_kernel = &kernel3;
 
 TEST(SVM_KERNELS, operator)
 {
 
     std::vector<double> vector1 = {2, 3, 4};
     std::vector<double> vector2 = {2, 3, 4};
-    double linear_output = (*linear_kernel)(vector1, vector2);
-    double rbf_output = (*rbf_kernel)(vector1, vector2);
-    double polynomial_output = (*polynomial_kernel)(vector1, vector2);
+    size_t no_dim = 3;
+    double linear_output = (*linear_kernel)(vector1.data(), vector2.data(), no_dim);
+    double rbf_output = (*rbf_kernel)(vector1.data(), vector2.data(), no_dim);
+    double polynomial_output = (*polynomial_kernel)(vector1.data(), vector2.data(), no_dim);
     ASSERT_DOUBLE_EQ(linear_output, 29);
     ASSERT_DOUBLE_EQ(rbf_output, 1);
     ASSERT_DOUBLE_EQ(polynomial_output, 900);
@@ -32,7 +36,7 @@ TEST(SVC_FUNCTIONS, predict_label)
 
     std::vector<int> TRUE_RESULT = {-1, 1, 1};
 
-    SVC::Problem SAMPLE_PROBLEM{X, Y, 1, 0.001, 6, 2, 0.00001};
+    SVC::Problem SAMPLE_PROBLEM{X.data(), Y.data(), 1, 0.001, 6, 2, 0.00001};
     SVC::SVM Linear_Estimator(SAMPLE_PROBLEM, linear_kernel);
     SVC::SVM RBF_Estimator(SAMPLE_PROBLEM, rbf_kernel);
     SVC::SVM Polynomial_Estimator(SAMPLE_PROBLEM, polynomial_kernel);
@@ -41,9 +45,9 @@ TEST(SVC_FUNCTIONS, predict_label)
     Polynomial_Estimator.SMO();
     for (size_t idx = 0; idx < T.size(); idx++)
     {
-        EXPECT_EQ(Polynomial_Estimator.predict_label(T[idx]), TRUE_RESULT[idx]);
-        EXPECT_EQ(Linear_Estimator.predict_label(T[idx]), TRUE_RESULT[idx]);
-        EXPECT_EQ(RBF_Estimator.predict_label(T[idx]), TRUE_RESULT[idx]);
+        EXPECT_EQ(Polynomial_Estimator.predict_label(T[idx].data()), TRUE_RESULT[idx]);
+        EXPECT_EQ(Linear_Estimator.predict_label(T[idx].data()), TRUE_RESULT[idx]);
+        EXPECT_EQ(RBF_Estimator.predict_label(T[idx].data()), TRUE_RESULT[idx]);
     }
 }
 
@@ -60,12 +64,12 @@ TEST(SVR_FUNCTIONS, predict)
 
     std::vector<double> TRUE_RESULT = {-2.0, 4.0, 5.0};
     const double EPSILON_TOLERANCE = 1e-5;
-    SVR::Problem SAMPLE_PROBLEM{X, Y, 1, 0.001, EPSILON_TOLERANCE, 6, 2, 0.00001};
+    SVR::Problem SAMPLE_PROBLEM{X.data(), Y.data(), 1, 0.001, EPSILON_TOLERANCE, 6, 2, 0.00001};
     SVR::SVM Linear_Estimator(SAMPLE_PROBLEM, linear_kernel);
     Linear_Estimator.SMO();
     for (size_t idx = 0; idx < T.size(); idx++)
     {
-        EXPECT_NEAR(Linear_Estimator.predict(T[idx]), TRUE_RESULT[idx], 2 * EPSILON_TOLERANCE);
+        EXPECT_NEAR(Linear_Estimator.predict(T[idx].data()), TRUE_RESULT[idx], 2 * EPSILON_TOLERANCE);
     }
 }
 
@@ -86,14 +90,14 @@ TEST(SVC_FUNCTIONS, xor_problem_rbf)
     std::vector<int> TRUE_RESULT = {-1, -1, 1, 1};
 
     // SVC::Problem{training_input, labels, C, tolerance, size, no_dim, eps}
-    SVC::Problem PROBLEM{X, Y, 10.0, 0.001, 4, 2, 0.00001};
+    SVC::Problem PROBLEM{X.data(), Y.data(), 10.0, 0.001, 4, 2, 0.00001};
 
     SVC::SVM RBF_Estimator(PROBLEM, rbf_kernel);
     RBF_Estimator.SMO();
 
     for (size_t idx = 0; idx < T.size(); idx++)
     {
-        EXPECT_EQ(RBF_Estimator.predict_label(T[idx]), TRUE_RESULT[idx])
+        EXPECT_EQ(RBF_Estimator.predict_label(T[idx].data()), TRUE_RESULT[idx])
             << "RBF kernel failed to classify XOR point at index " << idx;
     }
 }
@@ -115,13 +119,13 @@ TEST(SVC_FUNCTIONS, concentric_circles_rbf)
     };
     std::vector<int> TRUE_RESULT = {-1, 1};
 
-    SVC::Problem PROBLEM{X, Y, 10.0, 0.001, 8, 2, 0.00001};
+    SVC::Problem PROBLEM{X.data(), Y.data(), 10.0, 0.001, 8, 2, 0.00001};
     SVC::SVM RBF_Estimator(PROBLEM, rbf_kernel);
     RBF_Estimator.SMO();
 
     for (size_t idx = 0; idx < T.size(); idx++)
     {
-        EXPECT_EQ(RBF_Estimator.predict_label(T[idx]), TRUE_RESULT[idx]);
+        EXPECT_EQ(RBF_Estimator.predict_label(T[idx].data()), TRUE_RESULT[idx]);
     }
 }
 
@@ -134,14 +138,14 @@ TEST(SVC_FUNCTIONS, duplicate_inputs_robustness)
         -1.0, -1.0, -1.0, -1.0};
     std::vector<int> Y = {1, 1, 1, -1, -1};
 
-    SVC::Problem PROBLEM{X, Y, 1.0, 0.001, 5, 2, 0.00001};
+    SVC::Problem PROBLEM{X.data(), Y.data(), 1.0, 0.001, 5, 2, 0.00001};
     SVC::SVM Estimator(PROBLEM, linear_kernel);
 
     // SMO must terminate cleanly without deadlock
     Estimator.SMO();
 
-    EXPECT_EQ(Estimator.predict_label({1.0, 1.0}), 1);
-    EXPECT_EQ(Estimator.predict_label({-1.0, -1.0}), -1);
+    EXPECT_EQ(Estimator.predict_label(std::initializer_list<double>{1.0, 1.0}.begin()), 1);
+    EXPECT_EQ(Estimator.predict_label(std::initializer_list<double>{-1.0, -1.0}.begin()), -1);
 }
 
 // ============================================================================
@@ -169,13 +173,13 @@ TEST(SVR_FUNCTIONS, sine_wave_rbf)
 
     const double EPS = 0.05;
     // SVR::Problem{training_input, targets, C, tolerance, epsilon, size, no_dim, mu}
-    SVR::Problem PROBLEM{X, Y, 100.0, 0.001, EPS, 7, 1, 0.00001};
+    SVR::Problem PROBLEM{X.data(), Y.data(), 100.0, 0.001, EPS, 7, 1, 0.00001};
     SVR::SVM RBF_Estimator(PROBLEM, rbf_kernel);
     RBF_Estimator.SMO();
 
     for (size_t idx = 0; idx < T.size(); idx++)
     {
-        EXPECT_NEAR(RBF_Estimator.predict(T[idx]), TRUE_RESULT[idx], 3 * EPS)
+        EXPECT_NEAR(RBF_Estimator.predict(T[idx].data()), TRUE_RESULT[idx], 3 * EPS)
             << "SVR failed on sine wave interpolation at x = " << T[idx][0];
     }
 }
@@ -199,13 +203,13 @@ TEST(SVR_FUNCTIONS, multivariate_linear_3d)
     std::vector<double> TRUE_RESULT = {0.0};
 
     const double EPS = 0.001;
-    SVR::Problem PROBLEM{X, Y, 500.0, 0.0001, EPS, 5, 3, 0.00001};
+    SVR::Problem PROBLEM{X.data(), Y.data(), 500.0, 0.0001, EPS, 5, 3, 0.00001};
     SVR::SVM Linear_Estimator(PROBLEM, linear_kernel);
     Linear_Estimator.SMO();
 
     for (size_t idx = 0; idx < T.size(); idx++)
     {
-        EXPECT_NEAR(Linear_Estimator.predict(T[idx]), TRUE_RESULT[idx], 2 * EPS);
+        EXPECT_NEAR(Linear_Estimator.predict(T[idx].data()), TRUE_RESULT[idx], 2 * EPS);
     }
 }
 
@@ -222,12 +226,12 @@ TEST(SVR_FUNCTIONS, quadratic_polynomial_kernel)
     std::vector<double> TRUE_RESULT = {1.25, -0.75};
 
     const double EPS = 0.01;
-    SVR::Problem PROBLEM{X, Y, 100.0, 0.001, EPS, 5, 1, 0.00001};
+    SVR::Problem PROBLEM{X.data(), Y.data(), 100.0, 0.001, EPS, 5, 1, 0.00001};
     SVR::SVM Poly_Estimator(PROBLEM, polynomial_kernel);
     Poly_Estimator.SMO();
 
     for (size_t idx = 0; idx < T.size(); idx++)
     {
-        EXPECT_NEAR(Poly_Estimator.predict(T[idx]), TRUE_RESULT[idx], 3 * EPS);
+        EXPECT_NEAR(Poly_Estimator.predict(T[idx].data()), TRUE_RESULT[idx], 3 * EPS);
     }
 }
