@@ -1,4 +1,5 @@
 #include <SVR.h>
+#include <omp.h>
 using namespace SVR;
 #define abs(x) (((x) < 0) ? -(x) : (x))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
@@ -10,6 +11,7 @@ SVM::SVM(Problem prob, Kernel *k) : kernel(k),
                                     error_up(prob.size),
                                     error_low(prob.size)
 {
+    #pragma omp parallel for simd schedule(static)
     for (size_t i = 0; i < problem.size; i++)
     {
         unbiased_error[i] = problem.get_target(i);
@@ -24,6 +26,7 @@ bool SVM::is_non_bound(size_t i) const
 }
 void SVM::SVM::update_error_up_low()
 {
+    #pragma omp parallel for simd schedule(static)
     for (size_t idx = 0; idx < beta.size(); idx++)
     {
         if (beta[idx] > problem.mu)
@@ -39,6 +42,7 @@ void SVM::SVM::update_error_up_low()
             error_low[idx] = double(-INFINITY);
         }
     }
+    #pragma omp parallel for simd schedule(static)
     for (size_t idx = 0; idx < beta.size(); idx++)
     {
         if (beta[idx] > problem.mu && beta[idx] < problem.C * (1 - problem.mu))
@@ -73,6 +77,7 @@ void SVM::update_bounds()
 
 void SVM::update_error(size_t i1, size_t i2, double delta_i1)
 {
+    #pragma omp parallel for schedule(static)
     for (size_t idx = 0; idx < beta.size(); idx++)
     {
         unbiased_error[idx] -= delta_i1 * ((*kernel)(problem.get_row(i1).data(), problem.get_row(idx).data(), problem.no_dim) - (*kernel)(problem.get_row(i2).data(), problem.get_row(idx).data(), problem.no_dim));
@@ -151,6 +156,7 @@ double SVM::predict(const double* input) const
 {
     double sum = 0.0;
 
+    #pragma omp parallel for schedule(static) reduction(+:sum)
     for (size_t i = 0; i < problem.size; ++i)
     {
         sum += beta[i] * (*kernel)(problem.get_row(i).data(), input, problem.no_dim);
