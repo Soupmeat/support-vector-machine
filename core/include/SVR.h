@@ -15,7 +15,9 @@ namespace SVR{
         const size_t size;
         const size_t no_dim;
         const double mu; // threshold for floating point comparison
-        const int max_iter = 1000;
+        const int max_iter;
+        Problem(const double* ti, const double* t, double c, double tol, double eps, size_t s, size_t nd, double m, int mi=1000)
+            : training_input(ti), targets(t), C(c), tolerance(tol), epsilon(eps), size(s), no_dim(nd), mu(m), max_iter(mi) {}
         
         double get(size_t row, size_t index) const
         {
@@ -54,4 +56,4 @@ namespace SVR{
             bool is_non_bound(size_t i) const;
         
     };
-}
+};

@@ -1,0 +1,26 @@
+[build-system]
+requires = [
+    "scikit-build-core>=0.8.0",
+    "cython>=3.0.0",
+    "cmake>=3.25"
+]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "svm_cpp"
+version = "0.1.0"
+description = "A high-performance C++ SVM library with Python bindings"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    { name = "Sukhmit Singh", email = "sukhmitsingh442@gmail.com" }
+]
+classifiers = [
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+]
+dependencies = []
+
+[tool.scikit-build]
+cmake.version = ">=4.2"
