@@ -22,6 +22,25 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
 ]
 dependencies = ["numpy>=2.5.3"]
-
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0",
+    "scikit-learn>=1.0",
+]
 [tool.scikit-build]
 cmake.version = ">=4.2"
+[tool.cibuildwheel]
+# Build wheels for major platforms (Linux, macOS, Windows)
+# (Adjust architectures if needed, e.g., auto-detects by default)
+# Build for x86_64 and ARM64 on Linux, plus defaults for macOS and Windows
+archs = "auto64"
+
+# Command to run inside the isolated test environment after building the wheel
+test-command = "pytest {project}/tests"
+
+# Requirements to install before running the tests in cibuildwheel's test container
+test-requires = [
+    "pytest",
+    "scikit-learn",
+    "numpy"
+]
