@@ -11,7 +11,7 @@ target_link_libraries(SVM_lib PUBLIC
 )
 if(PROJECT_IS_TOP_LEVEL)
     enable_testing()
-    add_subdirectory(tests)
+    add_subdirectory(cpp_tests)
 endif()
 
 
@@ -25,7 +25,7 @@ set(CYTHON_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/SVM.cpp")
 add_custom_command(
     OUTPUT ${CYTHON_OUTPUT}
     DEPENDS python/SVM.pyx python/SVM.pxd
-    COMMAND ${Python_EXECUTABLE} -m cython --cplus ${CMAKE_CURRENT_SOURCE_DIR}/python/SVM.pyx -o ${CYTHON_OUTPUT}
+    COMMAND ${Python_EXECUTABLE} -m cython --cplus --module-name svm_cpp ${CMAKE_CURRENT_SOURCE_DIR}/python/SVM.pyx -o ${CYTHON_OUTPUT}
     COMMENT "Cythonizing SVM.pyx to C++"
 )
 
@@ -37,7 +37,7 @@ target_include_directories(SVM_py PRIVATE core/include)
 # Python modules typically shouldn't have a 'lib' prefix on their filename (e.g., '_SVM.so' instead of 'lib_SVM.so')
 set_target_properties(SVM_py PROPERTIES 
     PREFIX ""
-    OUTPUT_NAME "SVM")
+    OUTPUT_NAME "svm_cpp")
 
 # Tell scikit-build-core to include the compiled extension module in the package
 install(TARGETS SVM_py DESTINATION .)

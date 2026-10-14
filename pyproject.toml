@@ -2,7 +2,8 @@
 requires = [
     "scikit-build-core>=0.8.0",
     "cython>=3.0.0",
-    "cmake>=3.25"
+    "cmake>=3.25",
+    "numpy>=2.5.3"
 ]
 build-backend = "scikit_build_core.build"
 
@@ -20,7 +21,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
 ]
-dependencies = []
+dependencies = ["numpy>=2.5.3"]
 
 [tool.scikit-build]
 cmake.version = ">=4.2"

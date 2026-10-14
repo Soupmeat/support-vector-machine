@@ -1,5 +1,5 @@
 import numpy as np
-import SVM
+import svm_cpp as SVM
 # Testing SVC Python bindings with linear kernel
 arr = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float64)
 

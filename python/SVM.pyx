@@ -1,5 +1,7 @@
 from libc.stddef cimport size_t
 import numpy as np
+from SVM cimport *
+
 cdef class PyKernel:
     """
     Unified Python wrapper for C++ Kernel implementations.
