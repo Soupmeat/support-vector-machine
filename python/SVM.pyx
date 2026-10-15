@@ -187,7 +187,7 @@ cdef class PySVC:
 
         return predictions
 
-    def predict_label(self, double[:, ::1] X):
+    def predict_label(self, object X):
         """Calculates predicted discrete class labels (+1 / -1) for input feature vectors."""
         if self.cpp_svm == NULL:
             raise RuntimeError("Model must be fitted before calling predict.")
