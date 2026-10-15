@@ -12,7 +12,7 @@ cdef extern from "Kernel.h":
         RBFKernel(double g) except +
 
     cdef cppclass PolynomialKernel(Kernel):
-        PolynomialKernel(double d, double b) except +
+        PolynomialKernel(int d, double b) except +
 
 cdef extern from "SVC.h":
     cdef cppclass SVC_Problem "SVC::Problem":

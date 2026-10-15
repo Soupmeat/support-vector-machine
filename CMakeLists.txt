@@ -19,7 +19,7 @@ option(BUILD_PYTHON "Build Python bindings via Cython" ON)
 if(BUILD_PYTHON)
 
 # 3. Python Bindings (Built when scikit-build-core invokes CMake)
-find_package(Python COMPONENTS Interpreter Development REQUIRED)
+find_package(Python COMPONENTS Interpreter Development.Module NumPy REQUIRED)
 # Custom command to generate SVM.cpp from SVM.pyx
 set(CYTHON_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/SVM.cpp")
 add_custom_command(
@@ -30,8 +30,8 @@ add_custom_command(
 )
 
 # Create the Python extension module
-Python_add_library(SVM_py MODULE ${CYTHON_OUTPUT})
-target_link_libraries(SVM_py PRIVATE SVM_lib)
+Python_add_library(SVM_py MODULE ${CYTHON_OUTPUT} WITH_SOABI)
+target_link_libraries(SVM_py PRIVATE SVM_lib Python::NumPy)
 target_include_directories(SVM_py PRIVATE core/include)
 
 # Python modules typically shouldn't have a 'lib' prefix on their filename (e.g., '_SVM.so' instead of 'lib_SVM.so')
