@@ -30,10 +30,12 @@ test = [
 [tool.scikit-build]
 cmake.version = ">=3.25"
 [tool.cibuildwheel]
-# Build wheels for major platforms (Linux, macOS, Windows)
-# (Adjust architectures if needed, e.g., auto-detects by default)
-# Build for x86_64 and ARM64 on Linux, plus defaults for macOS and Windows
+# Automatically builds x86_64 and arm64 across Linux, macOS, and Windows
 archs = "auto64"
+
+# Use a modern Linux container image (GCC 11+) to support C++20 and ARM64 emulation smoothly
+manylinux-x86_64-image = "manylinux_2_28"
+manylinux-aarch64-image = "manylinux_2_28"
 
 # Command to run inside the isolated test environment after building the wheel
 test-command = "pytest {project}/tests"
