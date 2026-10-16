@@ -31,6 +31,7 @@ test = [
 cmake.version = ">=3.25"
 [tool.cibuildwheel]
 # Automatically run pytest inside every isolated wheel environment
+build-verbosity = 3
 test-command = "pytest {project}/tests"
 test-requires = [
     "pytest",
