@@ -25,8 +25,8 @@ struct RBFKernel : public Kernel{
     RBFKernel(double g) : Kernel(KernelType::RBF), gamma(g) {};
 };
 struct PolynomialKernel : public Kernel{
-    const double degree;
+    const int degree;
     const double bias;
-    PolynomialKernel(double d, double b) : Kernel(KernelType::Polynomial), degree(d), bias(b) {};
+    PolynomialKernel(int d, double b) : Kernel(KernelType::Polynomial), degree(d), bias(b) {};
     double operator()(const double* vector1, const double* vector2, size_t size) override;
 };

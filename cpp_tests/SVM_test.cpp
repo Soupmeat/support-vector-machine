@@ -36,7 +36,7 @@ TEST(SVC_FUNCTIONS, predict_label)
 
     std::vector<int> TRUE_RESULT = {-1, 1, 1};
 
-    SVC::Problem SAMPLE_PROBLEM{X.data(), Y.data(), 1, 0.001, 6, 2, 0.00001};
+    SVC::Problem SAMPLE_PROBLEM(X.data(), Y.data(), 1.0, 0.001, 6, 2, 0.00001);
     SVC::SVM Linear_Estimator(SAMPLE_PROBLEM, linear_kernel);
     SVC::SVM RBF_Estimator(SAMPLE_PROBLEM, rbf_kernel);
     SVC::SVM Polynomial_Estimator(SAMPLE_PROBLEM, polynomial_kernel);
@@ -64,7 +64,7 @@ TEST(SVR_FUNCTIONS, predict)
 
     std::vector<double> TRUE_RESULT = {-2.0, 4.0, 5.0};
     const double EPSILON_TOLERANCE = 1e-5;
-    SVR::Problem SAMPLE_PROBLEM{X.data(), Y.data(), 1, 0.001, EPSILON_TOLERANCE, 6, 2, 0.00001};
+    SVR::Problem SAMPLE_PROBLEM(X.data(), Y.data(), 1, 0.001, EPSILON_TOLERANCE, 6, 2, 0.00001);
     SVR::SVM Linear_Estimator(SAMPLE_PROBLEM, linear_kernel);
     Linear_Estimator.SMO();
     for (size_t idx = 0; idx < T.size(); idx++)
@@ -90,7 +90,7 @@ TEST(SVC_FUNCTIONS, xor_problem_rbf)
     std::vector<int> TRUE_RESULT = {-1, -1, 1, 1};
 
     // SVC::Problem{training_input, labels, C, tolerance, size, no_dim, eps}
-    SVC::Problem PROBLEM{X.data(), Y.data(), 10.0, 0.001, 4, 2, 0.00001};
+    SVC::Problem PROBLEM(X.data(), Y.data(), 10.0, 0.001, 4, 2, 0.00001);
 
     SVC::SVM RBF_Estimator(PROBLEM, rbf_kernel);
     RBF_Estimator.SMO();
@@ -119,7 +119,7 @@ TEST(SVC_FUNCTIONS, concentric_circles_rbf)
     };
     std::vector<int> TRUE_RESULT = {-1, 1};
 
-    SVC::Problem PROBLEM{X.data(), Y.data(), 10.0, 0.001, 8, 2, 0.00001};
+    SVC::Problem PROBLEM(X.data(), Y.data(), 10.0, 0.001, 8, 2, 0.00001);
     SVC::SVM RBF_Estimator(PROBLEM, rbf_kernel);
     RBF_Estimator.SMO();
 
@@ -138,7 +138,7 @@ TEST(SVC_FUNCTIONS, duplicate_inputs_robustness)
         -1.0, -1.0, -1.0, -1.0};
     std::vector<int> Y = {1, 1, 1, -1, -1};
 
-    SVC::Problem PROBLEM{X.data(), Y.data(), 1.0, 0.001, 5, 2, 0.00001};
+    SVC::Problem PROBLEM(X.data(), Y.data(), 1.0, 0.001, 5, 2, 0.00001);
     SVC::SVM Estimator(PROBLEM, linear_kernel);
 
     // SMO must terminate cleanly without deadlock
@@ -173,7 +173,7 @@ TEST(SVR_FUNCTIONS, sine_wave_rbf)
 
     const double EPS = 0.05;
     // SVR::Problem{training_input, targets, C, tolerance, epsilon, size, no_dim, mu}
-    SVR::Problem PROBLEM{X.data(), Y.data(), 100.0, 0.001, EPS, 7, 1, 0.00001};
+    SVR::Problem PROBLEM(X.data(), Y.data(), 100.0, 0.001, EPS, 7, 1, 0.00001);
     SVR::SVM RBF_Estimator(PROBLEM, rbf_kernel);
     RBF_Estimator.SMO();
 
@@ -203,7 +203,7 @@ TEST(SVR_FUNCTIONS, multivariate_linear_3d)
     std::vector<double> TRUE_RESULT = {0.0};
 
     const double EPS = 0.001;
-    SVR::Problem PROBLEM{X.data(), Y.data(), 500.0, 0.0001, EPS, 5, 3, 0.00001};
+    SVR::Problem PROBLEM(X.data(), Y.data(), 500.0, 0.0001, EPS, 5, 3, 0.00001);
     SVR::SVM Linear_Estimator(PROBLEM, linear_kernel);
     Linear_Estimator.SMO();
 
@@ -226,7 +226,7 @@ TEST(SVR_FUNCTIONS, quadratic_polynomial_kernel)
     std::vector<double> TRUE_RESULT = {1.25, -0.75};
 
     const double EPS = 0.01;
-    SVR::Problem PROBLEM{X.data(), Y.data(), 100.0, 0.001, EPS, 5, 1, 0.00001};
+    SVR::Problem PROBLEM(X.data(), Y.data(), 100.0, 0.001, EPS, 5, 1, 0.00001);
     SVR::SVM Poly_Estimator(PROBLEM, polynomial_kernel);
     Poly_Estimator.SMO();
 

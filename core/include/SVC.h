@@ -14,8 +14,9 @@ namespace SVC
         const size_t size;
         const size_t no_dim;
         const double eps;
-        const int max_iter = 1000;
-
+        const int max_iter;
+        Problem(const double* ti, const int* l, double c, double tol, size_t s, size_t nd, double e, int mi=1000)
+            : training_input(ti), labels(l), C(c), tolerance(tol), size(s), no_dim(nd), eps(e), max_iter(mi) {}
         double get(size_t row, size_t index) const
         {
             return training_input[row * no_dim + index];

@@ -1,0 +1,43 @@
+[build-system]
+requires = [
+    "scikit-build-core>=0.8.0",
+    "cython>=3.0.0",
+    "cmake>=3.25",
+    "numpy>=2.0.0"
+]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "svm_cpp"
+version = "0.1.0"
+description = "A high-performance C++ SVM library with Python bindings"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    { name = "Sukhmit Singh", email = "sukhmitsingh442@gmail.com" }
+]
+classifiers = [
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+]
+dependencies = ["numpy>=2.0.0"]
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0",
+    "scikit-learn>=1.0",
+]
+[tool.scikit-build]
+cmake.version = ">=3.25"
+[tool.cibuildwheel]
+archs = "auto64"
+manylinux-x86_64-image = "manylinux_2_28"
+manylinux-aarch64-image = "manylinux_2_28"
+
+test-command = "pytest {project}/tests"
+
+test-requires = [
+    "pytest",
+    "scikit-learn",
+    "numpy"
+]
