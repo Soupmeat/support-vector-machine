@@ -46,8 +46,7 @@ test-requires = [
 ]
 
 [tool.cibuildwheel.macos]
-# This runs once on the macOS CI runner before building wheels
 before-all = "brew install libomp"
 
-# Ensure CMake can find the Homebrew-installed LLVM OpenMP package
-environment = { OpenMP_ROOT = "/opt/homebrew/opt/libomp" }
+[tool.cibuildwheel.macos.environment]
+OpenMP_ROOT = "$(brew --prefix libomp)"
