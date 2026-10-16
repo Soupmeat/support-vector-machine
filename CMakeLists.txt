@@ -4,12 +4,20 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_STANDARD     20)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_CXX_EXTENSIONS OFF)
-find_package(OpenMP REQUIRED)
+find_package(OpenMP COMPONENTS CXX)
 add_library(SVM_lib STATIC core/src/SVC.cpp core/src/Kernel.cpp core/src/SVR.cpp)
 target_include_directories(SVM_lib PUBLIC core/include)
-target_link_libraries(SVM_lib PUBLIC 
-    OpenMP::OpenMP_CXX
-)
+
+if(TARGET OpenMP::OpenMP_CXX)
+    target_link_libraries(SVM_lib PRIVATE OpenMP::OpenMP_CXX)
+    
+    if(MSVC)
+        target_compile_options(SVM_lib PRIVATE /openmp:llvm)
+    endif()
+else()
+    message(WARNING "OpenMP not found; building without multithreading support.")
+endif()
+
 if(PROJECT_IS_TOP_LEVEL)
     enable_testing()
     add_subdirectory(cpp_tests)
