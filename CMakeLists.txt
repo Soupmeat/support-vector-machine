@@ -19,7 +19,7 @@ option(BUILD_PYTHON "Build Python bindings via Cython" ON)
 if(BUILD_PYTHON)
 
 # 3. Python Bindings (Built when scikit-build-core invokes CMake)
-find_package(Python COMPONENTS Interpreter Development.Module NumPy REQUIRED)
+find_package(Python 3.10 COMPONENTS Interpreter Development.Module NumPy REQUIRED)
 # Custom command to generate SVM.cpp from SVM.pyx
 set(CYTHON_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/SVM.cpp")
 add_custom_command(
