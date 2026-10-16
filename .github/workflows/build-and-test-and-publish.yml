@@ -1,4 +1,4 @@
-name: CI / Build, Test & Publish
+name: Build, Test & Publish
 
 on:
   push: 
@@ -6,15 +6,15 @@ on:
   pull_request:
     branches: [ main, master ]
   release:
-    types: [published] # Triggers wheel building and publishing when a release is published
+    types: [published]
 
 jobs:
-  # --- JOB 1: Test the C++ layer (Runs on EVERY push, PR, and release) ---
+  # --- JOB 1: Test the pure C++ layer ---
   test-cpp:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
@@ -31,14 +31,15 @@ jobs:
         working-directory: ./build
         run: ctest
 
-  # --- JOB 2: Build wheels via cibuildwheel (Runs ONLY if tests pass) ---
+  # --- JOB 2: Build wheels via cibuildwheel across platforms ---
   build-wheels:
     name: Build wheels on ${{ matrix.os }}
-    needs: test-cpp  # Gate: Must wait for C++ tests to pass successfully
+    needs: test-cpp
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest, macos-15-intel]
+        # macos-13 = Intel Mac, macos-latest = Apple Silicon Mac
+        os: [ubuntu-latest, windows-latest, macos-latest, macos-13]
 
     steps:
       - name: Checkout repository
@@ -59,7 +60,7 @@ jobs:
           name: cibuildwheel-${{ matrix.os }}
           path: ./wheelhouse/*.whl
 
-  # --- JOB 3: Publish to PyPI (Runs ONLY on release, after wheels are built) ---
+  # --- JOB 3: Publish to PyPI on release ---
   pypi-publish:
     name: Publish release to PyPI
     needs: [test-cpp, build-wheels]
@@ -67,9 +68,9 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/svm_cpp # Replace with your exact PyPI package name
+      url: https://pypi.org/p/svm_cpp
     permissions:
-      id-token: write # Required for PyPI Trusted Publishing OIDC
+      id-token: write
 
     steps:
       - name: Download all workflow artifacts
