@@ -37,6 +37,7 @@ jobs:
     needs: test-cpp  # Gate: Must wait for C++ tests to pass successfully
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
