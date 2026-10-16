@@ -9,58 +9,56 @@ on:
     types: [published]
 
 jobs:
-  # --- JOB 1: Test the pure C++ layer ---
   test-cpp:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
-
-      - name: Install CMake & CTest
-        uses: lukka/get-cmake@latest
-
-      - name: Configure CMake
-        run: cmake -B build -S . -DBUILD_PYTHON=OFF
-
-      - name: Build Project
-        run: cmake --build build
-
-      - name: Run Tests
-        working-directory: ./build
+      - uses: lukka/get-cmake@latest
+      - run: cmake -B build -S . -DBUILD_PYTHON=OFF
+      - run: cmake --build build
+      - working-directory: ./build
         run: ctest
 
-  # --- JOB 2: Build wheels via cibuildwheel across platforms ---
   build-wheels:
-    name: Build wheels on ${{ matrix.os }}
+    name: Build wheels for ${{ matrix.name }}
     needs: test-cpp
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        # macos-13 = Intel Mac, macos-latest = Apple Silicon Mac
-        os: [ubuntu-latest, windows-latest, macos-latest, macos-13]
+        include:
+          - name: Linux x86_64
+            os: ubuntu-latest
+            platform: manylinux_x86_64
+          - name: Linux ARM64
+            os: ubuntu-24.04-arm
+            platform: manylinux_aarch64
+          - name: macOS Apple Silicon
+            os: macos-14
+            platform: macosx_arm64
+          - name: Windows x86_64
+            os: windows-latest
+            platform: win_amd64
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Set up QEMU (for Linux ARM64 builds)
-        if: matrix.os == 'ubuntu-latest'
-        uses: docker/setup-qemu-action@v3
-
       - name: Build wheels using cibuildwheel
         uses: pypa/cibuildwheel@v2.22.0
+        env:
+          # Automatically targets ALL Python versions (3.10 -> 3.14t) for this platform
+          CIBW_BUILD: "cp*-${{ matrix.platform }}"
 
       - name: Upload wheels as artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: cibuildwheel-${{ matrix.os }}
+          name: wheel-${{ matrix.platform }}
           path: ./wheelhouse/*.whl
 
-  # --- JOB 3: Publish to PyPI on release ---
   pypi-publish:
     name: Publish release to PyPI
     needs: [test-cpp, build-wheels]
@@ -73,12 +71,10 @@ jobs:
       id-token: write
 
     steps:
-      - name: Download all workflow artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
-          pattern: cibuildwheel-*
+          pattern: wheel-*
           path: dist
           merge-multiple: true
 
-      - name: Publish package distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+      - uses: pypa/gh-action-pypi-publish@release/v1
